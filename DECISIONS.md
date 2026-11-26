@@ -17,7 +17,7 @@ The final README summarizes these; this file keeps the reasoning.
 | 10 | Redis ↔ Postgres consistency | **Postgres is truth + reconciler** | `ExtractionRun` (status, attempt, lease) lives in Postgres. On boot and every 30s the worker re-enqueues runs that are `queued`, or `running` with an expired lease. BullMQ `jobId = runId` makes re-enqueue idempotent. This covers restarts, killed containers and `FLUSHALL`. |
 | 11 | API access from the browser | **Browser calls the Railway API directly**; CORS allowlist via `CORS_ORIGINS` | No Vercel body-size limit on PDF uploads; the API is a plain public service. `NEXT_PUBLIC_API_URL` is set at build time. |
 | 12 | File storage | **S3-compatible object storage from day one**; parsed text per version stored in Postgres | Originals in S3 (SeaweedFS locally, since MinIO no longer publishes images; S3/R2 in prod). Parsed text lives in Postgres because evidence validation and the review UI for version N must always use version N's text. |
-| 13 | Tests | **Vitest** (unit + integration against real Postgres/Redis, fake LLM provider) (Playwright e2e planned, **cut for time**) | Unit tests cover normalization/evidence/carry-over; integration tests cover duplicate runs, crash mid-extract, FLUSHALL, supersede. A browser test of upload → review → re-extract is the first thing to add. |
+| 13 | Tests | **Vitest** (unit + integration against real Postgres/Redis, fake LLM provider) + **Playwright** e2e against an isolated stack with a deterministic fake LLM | Unit: normalization, evidence, carry-over, undo/redo replay. Integration: duplicate runs, crash mid-extract, FLUSHALL, supersede, review history. E2E: seeded list, gap reason, PDF evidence boxes, v1 → v2 carry-over, undo/redo across reloads. |
 
 ## Idempotency layers (decision 10, in detail)
 
@@ -61,7 +61,7 @@ A run whose worker died stays `extracting` until its lease (60s, extended every 
 
 ## Deployment (live)
 
-- **Web:** https://lomi-take-home.vercel.app (Vercel). Built locally with `vercel build` and shipped with `vercel deploy --prebuilt`, because the project root is `apps/web` inside the monorepo and the build must run through turbo from the repo root (`apps/web/vercel.json`). Pushes don't deploy it automatically yet.
+- **Web:** https://lomi-take-home.vercel.app (Vercel), connected to GitHub: every push to `main` deploys. Root directory `apps/web`; the build runs through turbo from the repo root (`apps/web/vercel.json`).
 - **API:** https://api-production-7892467b.up.railway.app (Railway). Migrations + idempotent fixture seed run on start (`RUN_MIGRATIONS=true`).
 - **Worker, Postgres, Redis, object storage:** the same Railway project, over private networking. PDFs live in a Railway bucket (S3-compatible, virtual-host URLs), so the storage code is identical to local dev.
 - **CORS:** the API allows only the Vercel origin.

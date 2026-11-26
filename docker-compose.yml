@@ -11,6 +11,7 @@ x-app-env: &app-env
   S3_FORCE_PATH_STYLE: "true"
   OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
   EXTRACTION_MODEL: ${EXTRACTION_MODEL:-openai/gpt-6-luna}
+  EXTRACTION_PROVIDER: ${EXTRACTION_PROVIDER:-openrouter}
 
 services:
   postgres:
