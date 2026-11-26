@@ -1,0 +1,5 @@
+{
+  "extends": "@lomi/tsconfig/base.json",
+  "compilerOptions": { "noEmit": true, "types": ["node"] },
+  "include": ["eval/**/*.ts", "src/**/*.ts"]
+}

@@ -1,0 +1,50 @@
+{
+  "_comment": "Hand-verified expected values per fixture, in canonical (normalizeValue) form. null = the field is NOT in the document and must come back as a gap. String fields may list acceptable alternatives.",
+  "documents": [
+    {
+      "file": "invoice-001.pdf",
+      "type": "invoice",
+      "expected": {
+        "invoice_number": "INV-2025-0847",
+        "issue_date": "2025-09-14",
+        "due_date": "2025-10-14",
+        "vendor_name": ["Meridian Office Supplies LLC", "Meridian Office Supplies"],
+        "total_amount": "5230.29"
+      }
+    },
+    {
+      "file": "invoice-001.v2.pdf",
+      "type": "invoice",
+      "expected": {
+        "invoice_number": "INV-2025-0847",
+        "issue_date": "2025-09-14",
+        "due_date": "2025-11-13",
+        "vendor_name": ["Meridian Office Supplies LLC", "Meridian Office Supplies"],
+        "total_amount": "6126.45"
+      }
+    },
+    {
+      "file": "lease-excerpt-001.pdf",
+      "type": "lease",
+      "expected": {
+        "tenant_name": "Dana Okafor",
+        "monthly_rent": "2350.00",
+        "security_deposit": "3525.00",
+        "lease_start": "2025-03-01",
+        "term_months": "24"
+      }
+    },
+    {
+      "file": "market-report-excerpt-001.pdf",
+      "type": "market_report",
+      "expected": {
+        "report_quarter": ["Q3 2025", "Q3"],
+        "market_area": ["Eastport-Harborview Submarket", "Eastport-Harborview"],
+        "vacancy_rate": "4.2",
+        "average_rent_1br": "1985.00",
+        "year_over_year_rent_growth": "3.8",
+        "median_household_income": null
+      }
+    }
+  ]
+}
