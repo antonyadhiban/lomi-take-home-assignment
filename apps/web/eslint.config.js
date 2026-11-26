@@ -1,1 +1,3 @@
-export { default } from "@lomi/eslint-config";
+import base from "@lomi/eslint-config";
+
+export default [...base, { ignores: ["public/**"] }];

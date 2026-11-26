@@ -7,6 +7,7 @@ import {
   createDocument,
   getDocument,
   getProgress,
+  getVersionFile,
   listDocuments,
   retryExtraction,
   ServiceError,
@@ -85,6 +86,18 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
     return getDocument(deps, req.params.id, v === undefined ? undefined : Number(v));
   });
 
+  // Original PDF of a version. Content-addressed (sha256 ETag), so browsers can cache it forever.
+  app.get<{ Params: { id: string; version: string } }>("/documents/:id/versions/:version/file", async (req, reply) => {
+    if (!/^\d+$/.test(req.params.version)) throw new ServiceError(400, "version must be a positive integer");
+    const { bytes, etag } = await getVersionFile(deps, req.params.id, Number(req.params.version));
+    return reply
+      .header("Content-Type", "application/pdf")
+      .header("Content-Disposition", `inline; filename="${req.params.id}-v${req.params.version}.pdf"`)
+      .header("Cache-Control", "private, max-age=31536000, immutable")
+      .header("ETag", `"${etag}"`)
+      .send(Buffer.from(bytes));
+  });
+
   app.get<{ Params: { id: string } }>("/documents/:id/progress", async (req) => getProgress(deps, req.params.id));
 
   app.post<{ Params: { id: string } }>("/documents/:id/retry", async (req, reply) => {
@@ -103,7 +116,7 @@ export async function buildApp(deps: Deps): Promise<FastifyInstance> {
           type: "object",
           required: ["action"],
           properties: {
-            action: { type: "string", enum: ["approve", "correct", "restore", "reset"] },
+            action: { type: "string", enum: ["approve", "correct", "restore", "reset", "undo", "redo"] },
             value: { type: "string" },
             note: { type: "string" },
             eventId: { type: "string" },

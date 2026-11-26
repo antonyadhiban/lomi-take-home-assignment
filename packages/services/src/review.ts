@@ -1,4 +1,4 @@
-import { FIELDS, isDocumentType, normalizeValue } from "@lomi/core";
+import { FIELDS, isDocumentType, normalizeValue, planRedo, planUndo } from "@lomi/core";
 import { ServiceError, type Deps } from "./deps.js";
 
 export type ReviewAction =
@@ -7,7 +7,10 @@ export type ReviewAction =
   /** undo/redo/restore: re-apply the state of an earlier event on this value */
   | { action: "restore"; eventId: string }
   /** undo back to "never reviewed" */
-  | { action: "reset" };
+  | { action: "reset" }
+  /** undo/redo the latest action; the stacks are replayed from the stored history */
+  | { action: "undo" }
+  | { action: "redo" };
 
 /**
  * Reviews are append-only events; the LLM's extracted value is never modified.
@@ -26,14 +29,14 @@ export async function applyReview(
       where: { id: valueId },
       include: {
         version: { include: { document: true, currentOf: true } },
-        reviews: { orderBy: { createdAt: "desc" }, take: 1 },
+        reviews: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       },
     });
     if (!value) throw new ServiceError(404, "value not found");
     if (!value.version.currentOf || value.version.status !== "extracted") {
       throw new ServiceError(409, "only values of the current, extracted version can be reviewed");
     }
-    const latest = value.reviews[0];
+    const latest = value.reviews.at(-1);
     if (input.expectedLatestEventId !== undefined && (latest?.id ?? null) !== input.expectedLatestEventId) {
       throw new ServiceError(409, "this value was reviewed by someone else in the meantime; reload and try again");
     }
@@ -77,6 +80,12 @@ export async function applyReview(
         return tx.reviewEvent.create({
           data: { valueId, kind: "restored", state: "pending", resultValue: null, reviewer },
         });
+      case "undo":
+      case "redo": {
+        const plan = input.action === "undo" ? planUndo(value.reviews) : planRedo(value.reviews);
+        if (!plan) throw new ServiceError(409, `nothing to ${input.action}`);
+        return tx.reviewEvent.create({ data: { valueId, reviewer, ...plan } });
+      }
       default:
         throw new ServiceError(400, "unknown review action");
     }

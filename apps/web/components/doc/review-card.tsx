@@ -17,6 +17,8 @@ const KIND: Record<ReviewEvent["kind"], string> = {
   corrected: "Corrected",
   restored: "Restored",
   carried_over: "Carried over",
+  undone: "Undo",
+  redone: "Redo",
 };
 
 /**
@@ -30,7 +32,6 @@ export function ReviewCard({
   pinned,
   readOnly,
   busy,
-  redoCount,
   correcting,
   setCorrecting,
   onReview,
@@ -42,7 +43,6 @@ export function ReviewCard({
   pinned: boolean;
   readOnly: boolean;
   busy: boolean;
-  redoCount: number;
   correcting: boolean;
   setCorrecting: (b: boolean) => void;
   onReview: (input: ReviewInput) => void;
@@ -183,13 +183,13 @@ export function ReviewCard({
             </button>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="ghost" aria-label="Undo" onClick={onUndo} disabled={busy || optimistic || !latest}><Undo2 /></Button>
+                <Button size="icon-sm" variant="ghost" aria-label="Undo" onClick={onUndo} disabled={busy || optimistic || !v.canUndo}><Undo2 /></Button>
               </TooltipTrigger>
               <TooltipContent>Undo (U)</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="ghost" aria-label="Redo" onClick={onRedo} disabled={busy || optimistic || !redoCount}><Redo2 /></Button>
+                <Button size="icon-sm" variant="ghost" aria-label="Redo" onClick={onRedo} disabled={busy || optimistic || !v.canRedo}><Redo2 /></Button>
               </TooltipTrigger>
               <TooltipContent>Redo (Shift+U)</TooltipContent>
             </Tooltip>
@@ -208,7 +208,7 @@ export function ReviewCard({
           {v.history.map((e, i) => (
             <li key={e.id} className={cn("flex items-center justify-between gap-2 py-0.5", i === v.history.length - 1 && "font-medium")}>
               <span className="min-w-0">
-                <span className={VALUE_META[e.state === "pending" ? "pending" : e.state].text}>{e.state === "pending" ? "Back to review" : KIND[e.kind]}</span>
+                <span className={VALUE_META[e.state === "pending" ? "pending" : e.state].text}>{e.kind === "undone" || e.kind === "redone" ? KIND[e.kind] : e.state === "pending" ? "Back to review" : KIND[e.kind]}</span>
                 {e.state === "corrected" && <> → {formatValue(v.type, e.resultValue)}</>}
                 <span className="text-muted-foreground"> · {e.reviewer} · {timeAgo(e.createdAt)}</span>
               </span>

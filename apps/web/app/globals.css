@@ -138,6 +138,21 @@
     background: color-mix(in oklab, var(--hl) 22%, transparent);
     box-shadow: inset 0 0 0 1.5px var(--hl), 0 0 0 3px color-mix(in oklab, var(--hl) 18%, transparent);
   }
+  /* the same boxes drawn over the rendered PDF */
+  .evidence-box {
+    @apply absolute cursor-pointer rounded-[3px] transition-[background-color,box-shadow] duration-100;
+    background: color-mix(in oklab, var(--hl) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl) 55%, transparent);
+  }
+  .evidence-box:hover,
+  .evidence-box[data-active="true"] {
+    background: color-mix(in oklab, var(--hl) 24%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--hl), 0 0 0 3px color-mix(in oklab, var(--hl) 20%, transparent);
+  }
+  .evidence-box[data-dim="true"] {
+    background: color-mix(in oklab, var(--hl) 8%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl) 30%, transparent);
+  }
   .evidence[data-dim="true"] {
     background: color-mix(in oklab, var(--hl) 7%, transparent);
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl) 28%, transparent);

@@ -27,7 +27,7 @@ export interface DocumentSummary {
 
 export interface ReviewEvent {
   id: string;
-  kind: "approved" | "corrected" | "restored" | "carried_over";
+  kind: "approved" | "corrected" | "restored" | "carried_over" | "undone" | "redone";
   state: ReviewState;
   resultValue: string | null;
   note: string | null;
@@ -48,6 +48,8 @@ export interface Value {
   effectiveValue: string | null;
   note: string | null;
   latestEventId: string | null;
+  canUndo: boolean;
+  canRedo: boolean;
   history: ReviewEvent[];
   previous: {
     versionNumber: number;
@@ -84,4 +86,6 @@ export type ReviewInput =
   | { action: "approve"; note?: string }
   | { action: "correct"; value: string; note?: string }
   | { action: "restore"; eventId: string }
-  | { action: "reset" };
+  | { action: "reset" }
+  | { action: "undo" }
+  | { action: "redo" };

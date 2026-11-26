@@ -51,7 +51,7 @@ function ReviewBar({ review }: { review: ReviewStage | null }) {
           <span className="absolute inset-0 flex items-center justify-between px-2 text-[11px] font-medium tabular-nums">
             {p ? (
               <>
-                <span className={cn(reviewed > 0 && "text-background")}>{p.pending ? `${p.pending} to review` : "All reviewed"}</span>
+                <span className="bg-background/85 px-1">{p.pending ? `${p.pending} to review` : "All reviewed"}</span>
                 <span className="bg-background/85 px-1 text-muted-foreground">
                   {reviewed}/{p.total}
                 </span>

@@ -7,17 +7,18 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app/app-shell";
-import { VersionStatusChip } from "@/components/app/status";
+import { DocumentStatusChip } from "@/components/app/status";
 import { useUpload, useVersionDropTarget } from "@/components/app/upload-provider";
 import { FieldList } from "@/components/doc/field-list";
 import { PipelineStages, type StageState } from "@/components/doc/pipeline-stages";
 import { ReviewCard } from "@/components/doc/review-card";
+import { PdfDocument } from "@/components/doc/pdf-document";
 import { SourceDocument } from "@/components/doc/source-document";
 import { VersionMenu } from "@/components/doc/version-menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { isOptimistic, useReview } from "@/hooks/use-review";
-import { api, isInFlight } from "@/lib/api";
+import { useReview } from "@/hooks/use-review";
+import { API_URL, api, isInFlight } from "@/lib/api";
 import { displayProgress, displayStatus, typeLabel } from "@/lib/format";
 import type { DocumentDetail, ReviewInput, Value } from "@/lib/types";
 
@@ -122,8 +123,21 @@ function DocumentPage({ id }: { id: string }) {
   const [cardHovered, setCardHovered] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const lastShown = useRef<string | null>(null);
-  const redo = useRef(new Map<string, string[]>()); // valueId -> undone event ids
-  const [, bump] = useState(0);
+  const [view, setView] = useState<"pdf" | "text">(() => {
+    try {
+      return (localStorage.getItem("doc-view") as "pdf" | "text" | null) ?? "pdf";
+    } catch {
+      return "pdf";
+    }
+  });
+  const chooseView = (v: "pdf" | "text") => {
+    setView(v);
+    try {
+      localStorage.setItem("doc-view", v);
+    } catch {
+      /* per-browser convenience only */
+    }
+  };
 
   const doc = useQuery({
     queryKey: ["document", id, viewVersion],
@@ -173,36 +187,15 @@ function DocumentPage({ id }: { id: string }) {
   }, []);
 
   const act = useCallback(
-    (v: Value, input: ReviewInput, keepRedo = false) => {
-      if (!keepRedo) redo.current.delete(v.id);
+    (v: Value, input: ReviewInput) => {
       setPinnedId(v.id);
       review.mutate({ valueId: v.id, input, expectedLatestEventId: v.latestEventId });
     },
     [review],
   );
-  // Undo = re-apply the state before the latest event; redo = re-apply what was undone. Both append events.
-  const undo = useCallback(
-    (v: Value) => {
-      const latest = v.history.at(-1);
-      if (!latest || isOptimistic(latest.id)) return;
-      const before = v.history.at(-2);
-      act(v, before ? { action: "restore", eventId: before.id } : { action: "reset" }, true);
-      redo.current.set(v.id, [...(redo.current.get(v.id) ?? []), latest.id]);
-      bump((n) => n + 1);
-    },
-    [act],
-  );
-  const redoLast = useCallback(
-    (v: Value) => {
-      const stack = redo.current.get(v.id) ?? [];
-      const eventId = stack.at(-1);
-      if (!eventId) return;
-      act(v, { action: "restore", eventId }, true);
-      redo.current.set(v.id, stack.slice(0, -1));
-      bump((n) => n + 1);
-    },
-    [act],
-  );
+  // Undo/redo are server-side review actions; the stacks are replayed from the stored history.
+  const undo = useCallback((v: Value) => v.canUndo && act(v, { action: "undo" }), [act]);
+  const redoLast = useCallback((v: Value) => v.canRedo && act(v, { action: "redo" }), [act]);
 
   // Keyboard: J/K or arrows step through fields, A approves, C corrects, U / Shift+U undo/redo, Esc closes.
   useEffect(() => {
@@ -284,11 +277,36 @@ function DocumentPage({ id }: { id: string }) {
         aria-label="Source document"
         onPointerDown={(e) => {
           // clicking empty space (not a field, not the card) dismisses the review card
-          if (!(e.target as HTMLElement).closest(".evidence, [data-review-card]")) pin(null);
+          if (!(e.target as HTMLElement).closest(".evidence, .evidence-box, [data-review-card], [data-view-toggle]")) pin(null);
         }}
       >
-        <SourceDocument text={shown.version.parsedText} values={shown.values} focusedId={highlightId} onHover={setHoverId} onSelect={pin} />
+        {view === "pdf" ? (
+          <PdfDocument
+            url={`${API_URL}/documents/${encodeURIComponent(id)}/versions/${shown.version.version}/file`}
+            values={shown.values}
+            focusedId={highlightId}
+            onHover={setHoverId}
+            onSelect={pin}
+          />
+        ) : (
+          <SourceDocument text={shown.version.parsedText} values={shown.values} focusedId={highlightId} onHover={setHoverId} onSelect={pin} />
+        )}
       </section>
+
+      <div data-view-toggle className="absolute top-3 right-4 z-10 flex border bg-background/95 p-0.5 text-xs shadow-sm backdrop-blur" role="tablist" aria-label="Document view">
+        {(["pdf", "text"] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={view === k}
+            onClick={() => chooseView(k)}
+            className={view === k ? "bg-foreground px-2.5 py-1 text-background" : "px-2.5 py-1 text-muted-foreground hover:text-foreground"}
+          >
+            {k === "pdf" ? "PDF" : "Text"}
+          </button>
+        ))}
+      </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
         {cardValue ? (
@@ -305,7 +323,6 @@ function DocumentPage({ id }: { id: string }) {
               pinned={pinnedId === cardValue.id}
               readOnly={readOnly}
               busy={busy}
-              redoCount={redo.current.get(cardValue.id)?.length ?? 0}
               correcting={correcting && pinnedId === cardValue.id}
               setCorrecting={(b) => {
                 setPinnedId(cardValue.id);
@@ -336,7 +353,7 @@ function DocumentPage({ id }: { id: string }) {
       type={d.type}
       headerRight={
         <>
-          <VersionStatusChip status={d.status} className="hidden sm:inline-flex" />
+          <DocumentStatusChip status={d.status} pending={d.progress.pending} className="hidden sm:inline-flex" />
           <input
             ref={fileRef}
             type="file"

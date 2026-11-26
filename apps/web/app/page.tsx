@@ -6,7 +6,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/app/app-shell";
 import { PipelineChart } from "@/components/app/pipeline-chart";
 import { ProgressBar } from "@/components/app/progress";
-import { VersionStatusChip } from "@/components/app/status";
+import { DocumentStatusChip } from "@/components/app/status";
 import { useUpload } from "@/components/app/upload-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -124,9 +124,9 @@ export default function DocumentsPage() {
                 <p className="text-xs text-muted-foreground">Added {timeAgo(d.createdAt)}</p>
               </div>
               <span className="text-muted-foreground">{typeLabel(d.type)}</span>
-              <span className="font-mono text-xs text-muted-foreground">v{d.currentVersion}</span>
+              <span className="text-muted-foreground tabular-nums">{d.currentVersion}</span>
               <span>
-                <VersionStatusChip status={d.status} />
+                <DocumentStatusChip status={d.status} pending={d.progress.pending} />
               </span>
               <div className="min-w-0">
                 {d.status === "extracted" ? (

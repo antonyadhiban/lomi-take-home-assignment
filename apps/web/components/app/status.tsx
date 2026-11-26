@@ -49,3 +49,28 @@ export function ValueStatusChip({ status, className }: { status: ValueStatus; cl
     </Chip>
   );
 }
+
+/**
+ * Status as a reviewer thinks about it: an extracted document is "Ready to
+ * review" until every field is approved or corrected, then "Done".
+ */
+export function DocumentStatusChip({
+  status,
+  pending,
+  className,
+}: {
+  status: VersionStatus | null;
+  pending: number;
+  className?: string;
+}) {
+  if (status !== "extracted") return <VersionStatusChip status={status} className={className} />;
+  return pending > 0 ? (
+    <Chip className={className}>
+      <Dot className="bg-pending" /> Ready to review
+    </Chip>
+  ) : (
+    <Chip className={cn("border-approved/40 text-approved", className)}>
+      <Dot className="bg-approved" /> Done
+    </Chip>
+  );
+}

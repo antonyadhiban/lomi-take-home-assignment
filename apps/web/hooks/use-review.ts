@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { planRedo, planUndo, replay } from "@lomi/core";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { DocumentDetail, Progress, ReviewEvent, ReviewInput, Value, ValueStatus } from "@/lib/types";
@@ -43,15 +44,28 @@ function applyLocally(v: Value, input: ReviewInput): Value {
     case "reset":
       ev = event({ kind: "restored", state: "pending", resultValue: null, note: null });
       break;
+    case "undo":
+    case "redo": {
+      // same replay the server runs, so the optimistic state matches what it will store
+      const plan = input.action === "undo" ? planUndo(v.history) : planRedo(v.history);
+      if (!plan) return v;
+      ev = event(plan);
+      break;
+    }
   }
-  const status: ValueStatus = ev.state === "pending" ? "pending" : ev.state;
+  const history = [...v.history, ev];
+  const { done, redo } = replay(history);
+  const top = done.at(-1);
+  const status: ValueStatus = !top ? "pending" : top.kind === "carried_over" ? "carried_over" : top.state === "pending" ? "pending" : top.state;
   return {
     ...v,
     status,
+    canUndo: done.length > 0,
+    canRedo: redo.length > 0,
     effectiveValue: ev.state === "corrected" ? ev.resultValue : v.value,
     note: ev.state === "pending" ? null : ev.note,
     latestEventId: ev.id,
-    history: [...v.history, ev],
+    history,
   };
 }
 

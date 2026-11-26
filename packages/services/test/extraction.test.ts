@@ -276,4 +276,32 @@ describe("reviews", () => {
     await addVersion(deps, id, await fixture("invoice-001.v2.pdf"));
     await expect(applyReview(deps, total.id, { action: "approve" })).rejects.toThrow(/current, extracted version/);
   });
+
+  it("undo/redo are stored events: the redo stack survives a reload and clears on a new action", async () => {
+    const id = await upload();
+    await processRun(deps, await activeRunId(deps, id));
+    const get = async () => (await getDocument(deps, id)).values.find((x) => x.field === "total_amount")!;
+    const total = await get();
+
+    await applyReview(deps, total.id, { action: "approve" });
+    await applyReview(deps, total.id, { action: "correct", value: "5320.29" });
+    await applyReview(deps, total.id, { action: "undo" });
+    let v = await get(); // a fresh read is what a reload sees
+    expect(v).toMatchObject({ status: "approved", effectiveValue: "$5,230.29", canUndo: true, canRedo: true });
+
+    await applyReview(deps, total.id, { action: "redo" });
+    v = await get();
+    expect(v).toMatchObject({ status: "corrected", effectiveValue: "5320.29", canRedo: false });
+
+    await applyReview(deps, total.id, { action: "undo" });
+    await applyReview(deps, total.id, { action: "undo" });
+    v = await get();
+    expect(v).toMatchObject({ status: "pending", canUndo: false, canRedo: true });
+    await expect(applyReview(deps, total.id, { action: "undo" })).rejects.toThrow(/nothing to undo/);
+
+    await applyReview(deps, total.id, { action: "approve" }); // new action
+    v = await get();
+    expect(v.canRedo).toBe(false);
+    expect(v.history.map((h) => h.kind)).toEqual(["approved", "corrected", "undone", "redone", "undone", "undone", "approved"]);
+  });
 });

@@ -40,6 +40,8 @@ enum ReviewKind {
   corrected
   restored     // undo/redo/restore: re-applies an earlier state (or back to pending)
   carried_over // copied from the previous version because evidence + value were unchanged
+  undone       // undo: reverses the event in sourceEventId (undo/redo stacks are replayed from the log)
+  redone       // redo: re-applies the undone event in sourceEventId
 }
 
 model Document {
@@ -145,7 +147,8 @@ model ReviewEvent {
   note           String?
   reviewer       String         @default("reviewer")
   /// for `restored`: the event whose state was re-applied;
-  /// for `carried_over`: the event on the previous version that was copied
+  /// for `carried_over`: the event on the previous version that was copied;
+  /// for `undone` / `redone`: the event being reversed / re-applied
   sourceEventId  String?
   sourceEvent    ReviewEvent?   @relation("SourceEvent", fields: [sourceEventId], references: [id])
   derivedEvents  ReviewEvent[]  @relation("SourceEvent")

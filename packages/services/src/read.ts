@@ -1,4 +1,4 @@
-import { FIELDS, isDocumentType, type FieldType } from "@lomi/core";
+import { FIELDS, isDocumentType, replay, type FieldType } from "@lomi/core";
 import type { ExtractedValue, ReviewEvent } from "@lomi/db";
 import { ServiceError, type Deps } from "./deps.js";
 
@@ -15,12 +15,12 @@ export interface Progress {
 
 type ValueWithReviews = ExtractedValue & { reviews: ReviewEvent[] };
 
-/** Progress bucket of a value = its latest review event. */
+/** Progress bucket of a value = the action currently in effect (undo/redo replayed). */
 export function valueStatus(reviews: ReviewEvent[]): ValueStatus {
-  const latest = reviews.at(-1);
-  if (!latest) return "pending";
-  if (latest.kind === "carried_over") return "carried_over";
-  return latest.state === "pending" ? "pending" : latest.state;
+  const top = replay(reviews).done.at(-1);
+  if (!top) return "pending";
+  if (top.kind === "carried_over") return "carried_over";
+  return top.state === "pending" ? "pending" : top.state;
 }
 
 function effective(v: ExtractedValue, latest: ReviewEvent | undefined): string | null {
@@ -36,7 +36,7 @@ export function progressOf(values: ValueWithReviews[]): Progress {
   return p;
 }
 
-const reviewsAsc = { orderBy: { createdAt: "asc" as const } };
+const reviewsAsc = { orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] };
 
 function eventView(e: ReviewEvent) {
   return {
@@ -71,6 +71,8 @@ function valueView(
     effectiveValue: effective(v, latest),
     note: latest?.state === "pending" ? null : (latest?.note ?? null),
     latestEventId: latest?.id ?? null,
+    canUndo: replay(v.reviews).done.length > 0,
+    canRedo: replay(v.reviews).redo.length > 0,
     history: v.reviews.map(eventView),
     previous: prev
       ? {
@@ -178,4 +180,14 @@ export async function getProgress(deps: Deps, id: string) {
     status: doc.currentVersion.status,
     ...progressOf(doc.currentVersion.values),
   };
+}
+
+/** The original PDF of one version, for the in-browser viewer. */
+export async function getVersionFile(deps: Deps, id: string, versionNumber: number) {
+  const version = await deps.prisma.documentVersion.findUnique({
+    where: { documentId_version: { documentId: id, version: versionNumber } },
+    select: { storageKey: true, sha256: true },
+  });
+  if (!version) throw new ServiceError(404, "version not found");
+  return { bytes: await deps.storage.get(version.storageKey), etag: version.sha256 };
 }
