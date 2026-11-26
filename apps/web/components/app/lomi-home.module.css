@@ -1,0 +1,23 @@
+.eyes, .left, .right { transform-box: fill-box; }
+.eyes { transform-origin: center; }
+.left { transform-origin: top right; }
+.right { transform-origin: top left; }
+.happy, .angry { display: none; }
+
+.home:is(:hover, :focus-visible):not([data-poked]) .eyes { display: none; }
+.home:is(:hover, :focus-visible):not([data-poked]) .happy,
+.home[data-poked] .angry { display: inline; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .home:not([data-poked]) .eyes { animation: blink 4.5s ease-in-out infinite; }
+  .home:is(:hover, :focus-visible):not([data-poked]) svg { animation: hop 1s ease-in-out infinite; }
+  .home:is(:hover, :focus-visible):not([data-poked]) :is(.left, .right) { animation: wave .6s ease-in-out infinite; }
+  .home[data-poked] svg { animation: shake .45s ease-in-out; }
+  .home[data-poked] :is(.left, .right) { animation: pinch .5s ease-in-out; }
+}
+
+@keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(.1); } }
+@keyframes hop { 50% { transform: translateY(-2.5px); } }
+@keyframes wave { 50% { transform: rotate(-8deg); } }
+@keyframes shake { 20%, 60% { transform: translateX(-1.5px); } 40%, 80% { transform: translateX(1.5px); } }
+@keyframes pinch { 25%, 75% { transform: rotate(-22deg); } 50% { transform: rotate(-10deg); } }

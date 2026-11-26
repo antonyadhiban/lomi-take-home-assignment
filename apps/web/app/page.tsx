@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Upload } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Upload } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/app/app-shell";
 import { PipelineChart } from "@/components/app/pipeline-chart";
 import { ProgressBar } from "@/components/app/progress";
@@ -16,6 +17,14 @@ import { timeAgo, typeLabel } from "@/lib/format";
 export default function DocumentsPage() {
   const qc = useQueryClient();
   const { openNewDocument } = useUpload();
+  const [expanded, setExpanded] = useState(true);
+  useEffect(() => {
+    try { setExpanded(localStorage.getItem("review-pipeline") !== "collapsed"); } catch { /* storage is optional */ }
+  }, []);
+  const togglePipeline = () => {
+    setExpanded(!expanded);
+    try { localStorage.setItem("review-pipeline", expanded ? "collapsed" : "expanded"); } catch { /* storage is optional */ }
+  };
   const docs = useQuery({
     queryKey: ["documents"],
     queryFn: api.listDocuments,
@@ -35,17 +44,17 @@ export default function DocumentsPage() {
     <>
       <PageHeader>
         <h1 className="text-sm font-medium">Documents</h1>
-        <div className="flex-1" />
-        <Button size="sm" onClick={() => openNewDocument()}>
-          <Upload /> Upload PDF
-        </Button>
       </PageHeader>
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <section className="mb-8 border bg-background">
-          <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 pt-4 pb-3">
-            <h2 className="font-serif text-xl">Review pipeline</h2>
-            <p className="text-xs text-muted-foreground">
+        <section className="mb-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2">
+          <div className={expanded ? "col-span-2 flex items-center justify-between gap-2 border px-3 py-2" : "flex items-center gap-3"}>
+            <h2>
+              <button type="button" aria-expanded={expanded} aria-controls="pipeline-chart" onClick={togglePipeline} className="flex items-center gap-2 py-1 font-serif text-lg">
+                <ChevronDown aria-hidden className={expanded ? "size-4" : "size-4 -rotate-90"} /> Review pipeline
+              </button>
+            </h2>
+            <div className="hidden text-xs text-muted-foreground sm:block">
               {docs.data ? (
                 <>
                   <span className="text-foreground tabular-nums">{totalPending}</span> value{totalPending === 1 ? "" : "s"} waiting for review
@@ -53,27 +62,32 @@ export default function DocumentsPage() {
               ) : (
                 <Skeleton className="inline-block h-3 w-32" />
               )}
-            </p>
+            </div>
           </div>
-          {docs.data ? (
-            <PipelineChart
-              stages={[
-                { label: "Uploaded", value: docs.data.length },
-                {
-                  label: "Extracted",
-                  value: docs.data.filter((d) => d.latestExtractedVersion != null).length,
-                  detail: [inFlight && `${inFlight} extracting`, failed && `${failed} failed`].filter(Boolean).join(", ") || undefined,
-                },
-                {
-                  label: "Fully reviewed",
-                  value: docs.data.filter((d) => d.status === "extracted" && d.progress.total > 0 && d.progress.pending === 0).length,
-                  detail: `${totalPending} values to go`,
-                },
-              ]}
-            />
-          ) : (
-            <Skeleton className="mx-4 mb-4 h-48" />
-          )}
+          <div id="pipeline-chart" hidden={!expanded} className="col-span-2 border border-t-0">
+            {expanded && (docs.data ? (
+              <PipelineChart
+                stages={[
+                  { label: "Uploaded", value: docs.data.length },
+                  {
+                    label: "Extracted",
+                    value: docs.data.filter((d) => d.latestExtractedVersion != null).length,
+                    detail: [inFlight && `${inFlight} extracting`, failed && `${failed} failed`].filter(Boolean).join(", ") || undefined,
+                  },
+                  {
+                    label: "Fully reviewed",
+                    value: docs.data.filter((d) => d.status === "extracted" && d.progress.total > 0 && d.progress.pending === 0).length,
+                    detail: `${totalPending} values to go`,
+                  },
+                ]}
+              />
+            ) : (
+              <Skeleton className="mx-4 mb-4 h-48" />
+            ))}
+          </div>
+          <Button size="sm" className={expanded ? "col-span-2 mt-3 justify-self-end" : "justify-self-end"} onClick={() => openNewDocument()}>
+            <Upload /> Upload PDF
+          </Button>
         </section>
 
         <div className="border">

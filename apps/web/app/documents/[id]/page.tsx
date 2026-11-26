@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Loader2, MousePointerClick } from "lucide-react";
+import { ChevronRight, Files, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -17,7 +17,7 @@ import { SourceDocument } from "@/components/doc/source-document";
 import { VersionMenu } from "@/components/doc/version-menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useReview } from "@/hooks/use-review";
+import { isOptimistic, useReview } from "@/hooks/use-review";
 import { API_URL, api, isInFlight } from "@/lib/api";
 import { displayProgress, displayStatus, typeLabel } from "@/lib/format";
 import type { DocumentDetail, ReviewInput, Value } from "@/lib/types";
@@ -34,6 +34,7 @@ export default function DocumentRoute() {
 function Layout({
   title,
   type,
+  status,
   headerRight,
   stages,
   canvas,
@@ -41,6 +42,7 @@ function Layout({
 }: {
   title: string;
   type?: string;
+  status?: ReactNode;
   headerRight?: ReactNode;
   stages: ReactNode;
   canvas: ReactNode;
@@ -50,11 +52,15 @@ function Layout({
     <div className="flex h-svh flex-col">
       <PageHeader>
         <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-          <Link href="/" className="text-muted-foreground hover:text-foreground">Documents</Link>
+          <Link href="/" aria-label="Documents" className="shrink-0 text-muted-foreground hover:text-foreground">
+            <Files className="size-4 sm:hidden" />
+            <span className="hidden sm:inline">Documents</span>
+          </Link>
           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
           <span className="truncate font-medium">{title}</span>
         </nav>
         {type && <span className="hidden text-xs text-muted-foreground sm:inline">{typeLabel(type)}</span>}
+        {status}
         <div className="flex-1" />
         {headerRight}
       </PageHeader>
@@ -171,7 +177,7 @@ function DocumentPage({ id }: { id: string }) {
   useVersionDropTarget(d ? { documentId: id, title: d.title, nextVersion } : null);
 
   const values = useMemo(() => (shown ? [...shown.values].sort((a, b) => rank(a) - rank(b)) : []), [shown]);
-  const readOnly = !shown || !shown.version.isCurrent || shown.version.status !== "extracted";
+  const readOnly = doc.isPlaceholderData || fallbackVersion != null || !shown || !shown.version.isCurrent || shown.version.status !== "extracted";
 
   // What the floating card shows: a hover preview, else the pinned field. While correcting it stays
   // on the pinned field; while the pointer is inside the card it freezes, so its buttons are reachable.
@@ -179,7 +185,12 @@ function DocumentPage({ id }: { id: string }) {
   lastShown.current = shownId;
   const cardValue = values.find((v) => v.id === shownId) ?? null;
   const highlightId = hoverId ?? pinnedId;
-  const busy = review.isPending && review.variables?.valueId === cardValue?.id;
+  const busy = review.isPending || isOptimistic(cardValue?.latestEventId);
+  const sourceRef = useRef<HTMLDivElement>(null);
+  const [pdfLocations, setPdfLocations] = useState<ReadonlyMap<string, number>>(new Map());
+  const [textLocations, setTextLocations] = useState<ReadonlySet<string>>(new Set());
+  const pageNumber = cardValue ? pdfLocations.get(cardValue.id) : undefined;
+  const canLocate = cardValue && (view === "pdf" ? pageNumber != null : textLocations.has(cardValue.id));
 
   const pin = useCallback((vid: string | null) => {
     setPinnedId(vid);
@@ -195,6 +206,7 @@ function DocumentPage({ id }: { id: string }) {
 
   const act = useCallback(
     (v: Value, input: ReviewInput) => {
+      if (review.isPending || isOptimistic(v.latestEventId)) return;
       setPinnedId(v.id);
       review.mutate({ valueId: v.id, input, expectedLatestEventId: v.latestEventId });
     },
@@ -279,26 +291,33 @@ function DocumentPage({ id }: { id: string }) {
 
   const canvas = shown?.version.parsedText ? (
     <>
-      <section
-        className="h-full overflow-y-auto bg-card/60 px-4 pt-8 pb-[45vh] sm:px-8"
+      <div
+        ref={sourceRef}
+        className="h-full bg-card/60"
         aria-label="Source document"
+        role="region"
         onPointerDown={(e) => {
-          // clicking empty space (not a field, not the card) dismisses the review card
-          if (!(e.target as HTMLElement).closest(".evidence, .evidence-box, [data-review-card], [data-view-toggle]")) pin(null);
+          if (!(e.target as HTMLElement).closest(".evidence, .evidence-box")) pin(null);
         }}
       >
-        {view === "pdf" ? (
+        <div hidden={view !== "pdf"} className="h-full overflow-y-auto px-4 pt-8 pb-[45vh] sm:px-8">
           <PdfDocument
+            key={`${id}-${shown.version.version}`}
+            active={view === "pdf"}
             url={`${API_URL}/documents/${encodeURIComponent(id)}/versions/${shown.version.version}/file`}
             values={shown.values}
-            focusedId={highlightId}
+            focusedId={view === "pdf" ? highlightId : null}
+            onLocations={setPdfLocations}
             onHover={setHoverId}
             onSelect={pin}
           />
-        ) : (
-          <SourceDocument text={shown.version.parsedText} values={shown.values} focusedId={highlightId} onHover={setHoverId} onSelect={pin} />
+        </div>
+        {view === "text" && (
+          <div className="h-full overflow-y-auto px-4 pt-8 pb-[45vh] sm:px-8">
+            <SourceDocument text={shown.version.parsedText} values={shown.values} focusedId={highlightId} onLocations={setTextLocations} onHover={setHoverId} onSelect={pin} />
+          </div>
         )}
-      </section>
+      </div>
 
       <div data-view-toggle className="absolute top-3 right-4 z-10 flex border bg-background/95 p-0.5 text-xs shadow-sm backdrop-blur" role="tablist" aria-label="Document view">
         {(["pdf", "text"] as const).map((k) => (
@@ -327,6 +346,14 @@ function DocumentPage({ id }: { id: string }) {
             <ReviewCard
               key={cardValue.id}
               value={cardValue}
+              version={shown.version.version}
+              pageNumber={pageNumber}
+              onLocate={canLocate ? () => {
+                const target = sourceRef.current?.querySelector<HTMLElement>(
+                  `.${view === "pdf" ? "evidence-box" : "evidence"}[data-value-id="${CSS.escape(cardValue.id)}"]`
+                );
+                target?.scrollIntoView({ block: "center", behavior: "smooth" });
+              } : undefined}
               pinned={pinnedId === cardValue.id}
               readOnly={readOnly}
               busy={busy}
@@ -341,11 +368,7 @@ function DocumentPage({ id }: { id: string }) {
               onClose={() => pin(null)}
             />
           </div>
-        ) : (
-          <div className="flex items-center gap-2 border bg-card/95 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur">
-            <MousePointerClick className="size-3.5" /> Hover a field to inspect it · click to review · <kbd>J</kbd>/<kbd>K</kbd> to step through
-          </div>
-        )}
+        ) : null}
       </div>
     </>
   ) : (
@@ -358,9 +381,9 @@ function DocumentPage({ id }: { id: string }) {
     <Layout
       title={d.title}
       type={d.type}
+      status={<DocumentStatusChip status={d.version.status} pending={d.progress.pending} className="h-7 shrink-0 px-2 text-xs" />}
       headerRight={
         <>
-          <DocumentStatusChip status={d.status} pending={d.progress.pending} className="hidden sm:inline-flex" />
           <input
             ref={fileRef}
             type="file"

@@ -81,7 +81,7 @@ export function useReview(documentId: string, viewVersion: number | null) {
 
   return useMutation({
     mutationFn: ({ valueId, input, expectedLatestEventId }: { valueId: string; input: ReviewInput; expectedLatestEventId: string | null }) =>
-      api.review(valueId, isOptimistic(expectedLatestEventId) ? input : { ...input, expectedLatestEventId }),
+      api.review(valueId, { ...input, expectedLatestEventId }),
     onMutate: async ({ valueId, input }) => {
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<DocumentDetail>(key);
@@ -95,9 +95,11 @@ export function useReview(documentId: string, viewVersion: number | null) {
       if (ctx?.previous) qc.setQueryData(key, ctx.previous);
       toast.error(err.message);
     },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["document", documentId] });
-      qc.invalidateQueries({ queryKey: ["documents"] });
+    onSettled: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["document", documentId] }),
+        qc.invalidateQueries({ queryKey: ["documents"] }),
+      ]);
     },
   });
 }

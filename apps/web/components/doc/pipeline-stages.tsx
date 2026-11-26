@@ -116,19 +116,11 @@ export function PipelineStages({
     </p>
   );
 
-  const status = statusNode ?? (failed ? null : (
-    <span className="truncate text-muted-foreground">
-      {upload === "active"
-        ? "Storing the PDF…"
-        : extract === "active"
-          ? "Parsing the PDF and asking the model for each field…"
-          : p && review?.changed
-            ? `${review.changed} changed since v${review.previousVersion}. Unchanged reviews carried over`
-            : p
-              ? "Hover a field to inspect · click to review"
-              : ""}
-    </span>
-  ));
+  const status = statusNode ?? (upload === "active"
+    ? "Storing the PDF…"
+    : extract === "active"
+      ? "Parsing the PDF and asking the model for each field…"
+      : review?.changed ? `${review.changed} changed since v${review.previousVersion}. Unchanged reviews carried over` : null);
 
   return (
     <div className="border-b px-4 pt-3 pb-3">
@@ -155,8 +147,7 @@ export function PipelineStages({
           <ReviewBar review={review} />
         </div>
       </div>
-      {/* one reserved line for status text, so the block never changes height */}
-      <div className="mt-2 flex h-6 items-center gap-2 text-[11px]">
+      {(failed || status) && <div className="mt-2 flex min-h-6 items-center gap-2 text-[11px] text-muted-foreground">
         {failed && !statusNode ? (
           <>
             <span className="min-w-0 flex-1 truncate text-gap" title={error ?? undefined}>{error ?? "Failed"}</span>
@@ -169,7 +160,7 @@ export function PipelineStages({
         ) : (
           status
         )}
-      </div>
+      </div>}
     </div>
   );
 }

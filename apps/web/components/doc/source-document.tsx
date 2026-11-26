@@ -15,12 +15,14 @@ export function SourceDocument({
   text,
   values,
   focusedId,
+  onLocations,
   onHover,
   onSelect,
 }: {
   text: string;
   values: Value[];
   focusedId: string | null;
+  onLocations: (locations: ReadonlySet<string>) => void;
   onHover: (id: string | null) => void;
   onSelect: (id: string) => void;
 }) {
@@ -44,6 +46,10 @@ export function SourceDocument({
     return out;
   }, [text, values]);
 
+  useEffect(() => {
+    onLocations(new Set(refs.current.keys()));
+  }, [segments, onLocations]);
+
   // keep the focused passage in view when focus comes from the sidebar or keyboard
   useEffect(() => {
     if (focusedId) refs.current.get(focusedId)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -65,6 +71,7 @@ export function SourceDocument({
               }}
               className="evidence text-inherit"
               style={{ ["--hl" as string]: meta.hl }}
+              data-value-id={v.id}
               data-active={focusedId === v.id}
               data-dim={focusedId != null && focusedId !== v.id}
               title={`${fieldLabel(v.field)} · ${meta.label}`}

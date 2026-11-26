@@ -1,21 +1,12 @@
-# lomilabs-document-pipeline
+# Lomi Labs document review
 
-Upload a PDF, and the app pulls out the values you care about (invoice totals, lease terms, market figures), each with the exact passage it came from. A reviewer checks every value against the original document and approves or corrects it. When a revised PDF arrives, only the values that actually changed come back for review.
+Review invoice, lease, and market-report fields against the passage an LLM extracted them from. When a revised PDF arrives, the app carries forward eligible reviews and shows what needs a fresh decision.
 
-**Live demo:** https://lomi-take-home.vercel.app
-
----
+[Open the live demo](https://lomi-take-home.vercel.app)
 
 ## Quick start
 
-### What you need
-
-| | |
-|---|---|
-| **Docker Desktop** (includes Docker Compose) | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) |
-| **An OpenRouter API key** | Sign in at [openrouter.ai](https://openrouter.ai), open **Keys → Create key**, and add a few dollars of credit. Reviewing a document costs a fraction of a cent. |
-
-That's all you need to run it. Node.js and pnpm are only needed for development (see [Development](#development)).
+Install Docker with Compose and provide an OpenRouter API key for extraction. Reviewing existing values makes no model calls.
 
 ### Run it
 
@@ -34,11 +25,12 @@ To stop the app, press `Ctrl+C` or run `docker compose down`; your data is kept.
 
 ### Your first review
 
-1. **Documents.** All three sample documents show **Ready to review**.
-2. **Open "Market report excerpt".** You see the original PDF with every extracted value boxed. Hover a box, or a field in the right-hand list, to see the value and the passage it came from. Click it to review it, then **Approve**, or **Correct** it and add a note. *Median household income* shows **Not found**, because the report doesn't mention it.
-3. **Open "Invoice — Meridian Office Supplies"** and approve all five fields. The status changes to **Done**.
-4. **Upload the revised invoice.** Open the version menu at the top right (**v1 · current**), choose **Upload new version…**, and pick `fixtures/documents/invoice-001.v2.pdf`. Within a few seconds, **Due date** and **Total amount** need review again, each showing its previous value. The other three keep their approval.
-5. **Try your own.** Click **Upload PDF**, or drag a PDF anywhere onto the app.
+1. Open **Invoice — Meridian Office Supplies** when its status reaches **Ready to review**. Select **Total amount** in the list or on the PDF. The card shows the extracted value and its **Source passage**. **Show in document** locates the highlighted text.
+2. **Approve** the five invoice fields. To try a correction, choose **Correct**, enter a value and optional note, then **Save**. **Undo** and **Redo** step through the selected field’s decisions, including after a reload.
+3. Open the version selector at the top right. Choose **Upload** in the menu header and select [the revised invoice](fixtures/documents/invoice-001.v2.pdf). **Due date** and **Total amount** return to review. The other three approvals carry over.
+4. Select **Total amount** and open **Compare passages** to see what changed in the source. Choose **v1** from the version menu to inspect the earlier approval in read-only mode.
+5. Open **Market report excerpt** and select **Median household income** to see a missing field and its reason. To try a new document, use **Upload PDF** above the dashboard table. On a document page, dropping a file adds a version to that document.
+
 
 ---
 
@@ -48,7 +40,7 @@ Everything is configured with environment variables in `.env`. The defaults work
 
 | Variable | Default | What it's for |
 |---|---|---|
-| `OPENROUTER_API_KEY` | — | **Required.** Key for the extraction model. |
+| `OPENROUTER_API_KEY` | — | Required for the OpenRouter provider. |
 | `EXTRACTION_MODEL` | `openai/gpt-6-luna` | Any [OpenRouter model](https://openrouter.ai/models) that supports structured output. |
 | `EXTRACTION_PROVIDER` | `openrouter` | Set to `fake` for a deterministic offline mode (used by the end-to-end tests). |
 | `DATABASE_URL` | local Postgres | PostgreSQL connection string. |
@@ -68,9 +60,7 @@ The live demo runs as two halves:
 | Web app (`apps/web`) | Vercel | Deploys automatically on every push to `main`. Root directory `apps/web`; needs `NEXT_PUBLIC_API_URL`. |
 | API, worker, Postgres, Redis, PDF storage | Railway | API and worker deploy automatically on every push to `main`, both built from the same `Dockerfile` (`APP=api` / `APP=worker`). `RUN_MIGRATIONS=true` on the API runs migrations and the sample seed on start. |
 
-Pushing to `main` updates everything: Vercel rebuilds the web app and Railway rebuilds the API and worker.
-
-The worker needs a long-running process and a persistent Redis connection, which serverless platforms don't provide. Any container host works (Railway, Fly.io, ECS, Cloud Run with min instances). For lower latency, place the API, worker and database in the region closest to the client's reviewers.
+The worker runs continuously to process jobs and reconcile unfinished runs.
 
 ---
 
@@ -122,29 +112,19 @@ e2e            Browser tests (Playwright)
 fixtures       Sample documents
 ```
 
-**How a document flows through it**
+The API stores the original PDF, creates a queued extraction run, and returns. A worker parses the version’s text, calls the model, and validates each quoted passage. Matching normalizes whitespace, Unicode and typographic punctuation while preserving case and digits. Missing or rejected evidence produces a gap with a reason. Each run stores its prompt and raw response for debugging.
 
-1. **Upload.** The PDF is stored and the document appears immediately as *queued*.
-2. **Extract.** The worker reads the PDF text and asks the model for each field and the passage it came from.
-3. **Check.** A value is kept only if its passage appears word for word in the document. Anything else becomes *Not found*, with the reason.
-4. **Review.** A person approves or corrects each value. Every action, including undo and redo, is kept as history.
-5. **Revise.** When a new version arrives, a value whose passage and value are unchanged keeps its review. Everything else comes back for review, with the previous version beside it.
-
----
-
-## Take-home assignment notes
-
-This section covers what the [Lomi Labs brief](BRIEF.md) asks for. Longer reasoning is in [DECISIONS.md](DECISIONS.md).
+The API and worker share the use cases in `packages/services`. Domain rules in `packages/core` run without a database or a model. The [decision record](DECISIONS.md) explains the boundaries and trade-offs against the [assignment brief](BRIEF.md).
 
 ### Data model
 
-- **Document → versions → extracted values → review events.** Each version keeps its own PDF and text, so older versions stay reviewable as they were.
+- **Document → versions → extracted values → review events.** Each version keeps its own PDF and text, so older versions remain available for read-only inspection.
 - **Extracted values are never edited.** Corrections are review events beside them, so what the model said and what a person decided are both kept.
 - **One value per field per version** (a database constraint), so running an extraction twice can't create duplicates.
 
 ### Redis and Postgres
 
-Postgres holds everything that matters. Redis only holds the queue of jobs to run. A background check re-queues any job Postgres says is unfinished, so losing Redis loses nothing.
+Postgres holds parsed text, values, reviews, and extraction outcomes. Object storage holds the original PDFs. Redis coordinates jobs. On startup and at intervals, the reconciler uses Postgres to requeue eligible unfinished runs. A worker claims each run with an expiring lease. Committing the values, carry-over decisions, and final run status in one transaction keeps retries consistent.
 
 | What happens | Result |
 |---|---|
@@ -159,10 +139,10 @@ Postgres holds everything that matters. Redis only holds the queue of jobs to ru
 | Decision | Choice | Later |
 |---|---|---|
 | New version while one is extracting | The newer version replaces it; the unfinished one is marked superseded. | Optionally let the older version finish for comparison. |
-| What counts as "unchanged" | Same value, and the old passage still appears word for word in the new version. | Fuzzy matching for heavily re-typeset documents, with a confirmation step. |
+| What counts as "unchanged" | The normalized value matches and the previously reviewed passage still occurs in the new text after normalization, at any position. Gaps need a fresh decision. | Fuzzy matching for heavily re-typeset documents, with a confirmation step. |
 | Corrections | Kept beside the extracted value, never overwriting it; full history with undo and redo. | Reviewer accounts on every event. |
-| Live updates | The page refreshes every 2s only while something is processing. | Server push if many reviewers share one document. |
-| Model | OpenRouter, `openai/gpt-6-luna`: tied for best accuracy on the samples, cheapest and fastest ([comparison](packages/extraction/eval/RESULTS.md)). | Re-run the comparison on real client documents. |
+| Live updates | The UI polls document status every two seconds during processing and refreshes stale data on window focus. | Server push if many reviewers share one document. |
+| Model | OpenRouter, `openai/gpt-6-luna`: tied for best fixture accuracy at the lowest measured cost ([comparison](packages/extraction/eval/RESULTS.md)). | Re-run the comparison on real client documents. |
 | Hosting | Web on Vercel; API, worker and data on Railway. | The client's own cloud (AWS or GCP), set up with Terraform. |
 
 ### Performance

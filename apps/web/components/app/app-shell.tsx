@@ -1,6 +1,7 @@
 "use client";
 
 import { Files, Moon, Sun } from "lucide-react";
+import { LomiHome } from "./lomi-home";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -39,9 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-svh">
       <aside className="sticky top-0 hidden h-svh w-[60px] shrink-0 flex-col items-center gap-2 border-r bg-background py-4 md:flex">
-        <Link href="/" className="mb-4 flex size-9 items-center justify-center bg-foreground font-serif text-lg text-background" aria-label="Home">
-          R
-        </Link>
+        <LomiHome />
         <RailButton label="Documents" href="/" active={pathname === "/" || pathname.startsWith("/documents")}>
           <Files className="size-[18px]" />
         </RailButton>

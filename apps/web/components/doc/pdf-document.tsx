@@ -154,12 +154,16 @@ function mergeLines(boxes: Box[]): Box[] {
  */
 export function PdfDocument({
   url,
+  active,
+  onLocations,
   values,
   focusedId,
   onHover,
   onSelect,
 }: {
   url: string;
+  active: boolean;
+  onLocations: (locations: ReadonlyMap<string, number>) => void;
   values: Value[];
   focusedId: string | null;
   onHover: (id: string | null) => void;
@@ -173,9 +177,14 @@ export function PdfDocument({
   const [width, setWidth] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  // Start on the first visit to PDF. Keep its worker and canvases until the version changes.
+  const [opened, setOpened] = useState(active);
+  if (active && !opened) setOpened(true);
+
   // load the document + every page's text layout once per URL
   useEffect(() => {
     let cancelled = false;
+    if (!opened) return;
     let task: { destroy: () => Promise<void> } | null = null;
     setDoc(null);
     setPages([]);
@@ -183,6 +192,7 @@ export function PdfDocument({
     (async () => {
       try {
         const pdfjs = await loadPdfJs();
+        if (cancelled) return;
         const loadingTask = pdfjs.getDocument({ url });
         task = loadingTask;
         const loaded = await loadingTask.promise;
@@ -204,13 +214,16 @@ export function PdfDocument({
       cancelled = true;
       void task?.destroy();
     };
-  }, [url]);
+  }, [url, opened]);
 
   // fit the page to the canvas column
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setWidth(Math.min(820, Math.floor(entry!.contentRect.width))));
+    const ro = new ResizeObserver(([entry]) => {
+      const nextWidth = Math.floor(entry!.contentRect.width);
+      if (nextWidth > 0) setWidth(Math.min(820, nextWidth));
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -227,6 +240,7 @@ export function PdfDocument({
         const canvas = canvasRefs.current[i];
         if (!canvas || cancelled) continue;
         const page = await doc.getPage(i + 1);
+        if (cancelled) return;
         const viewport = page.getViewport({ scale: scale * (window.devicePixelRatio || 1) });
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
@@ -242,6 +256,9 @@ export function PdfDocument({
   }, [doc, pages, width, scale]);
 
   const boxes = useMemo(() => locateBoxes(pages, values), [pages, values]);
+  useEffect(() => {
+    onLocations(new Map(boxes.map((box) => [box.valueId, box.page + 1])));
+  }, [boxes, onLocations]);
   const byId = useMemo(() => new Map(values.map((v) => [v.id, v])), [values]);
 
   useEffect(() => {
@@ -276,6 +293,7 @@ export function PdfDocument({
                       if (el && !boxRefs.current.has(v.id)) boxRefs.current.set(v.id, el);
                       if (!el) boxRefs.current.delete(v.id);
                     }}
+                    data-value-id={v.id}
                     className="evidence-box"
                     style={{
                       ["--hl" as string]: meta.hl,

@@ -35,27 +35,6 @@ export function locate(text: string, quote: string): [number, number] | null {
   return m ? [m.index, m.index + m[0].length] : null;
 }
 
-/** Same diff, merged into one sequence for a single inline view: removed words struck, added words marked. */
-export function diffInline(before: string, after: string): DiffPart[] {
-  const a = before.split(/(\s+)/).filter(Boolean);
-  const b = after.split(/(\s+)/).filter(Boolean);
-  const dp = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
-  for (let i = a.length - 1; i >= 0; i--)
-    for (let j = b.length - 1; j >= 0; j--) dp[i]![j] = a[i] === b[j] ? dp[i + 1]![j + 1]! + 1 : Math.max(dp[i + 1]![j]!, dp[i]![j + 1]!);
-  const out: DiffPart[] = [];
-  let i = 0;
-  let j = 0;
-  while (i < a.length || j < b.length) {
-    if (i < a.length && j < b.length && a[i] === b[j]) {
-      out.push({ text: a[i]!, kind: "same" });
-      i++;
-      j++;
-    } else if (j >= b.length || (i < a.length && dp[i + 1]![j]! >= dp[i]![j + 1]!)) out.push({ text: a[i++]!, kind: "del" });
-    else out.push({ text: b[j++]!, kind: "add" });
-  }
-  return out;
-}
-
 /**
  * The document's own label for a field, read from its evidence ("Total Due: $6,126.45" → "Total Due"),
  * shown beside the canonical field name. Only for short "Label: value" quotes; null otherwise.

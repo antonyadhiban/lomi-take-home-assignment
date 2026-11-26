@@ -1,5 +1,6 @@
 "use client";
 
+import { replay } from "@lomi/core";
 import { Check, History, PencilLine, Redo2, Undo2, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Chip, Dot, VALUE_META, ValueStatusChip } from "@/components/app/status";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { isOptimistic } from "@/hooks/use-review";
-import { diffInline, documentLabel } from "@/lib/diff";
+import { diffWords, documentLabel } from "@/lib/diff";
 import { displayStatus, fieldLabel, formatValue, timeAgo } from "@/lib/format";
 import type { ReviewEvent, ReviewInput, Value } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -21,14 +22,11 @@ const KIND: Record<ReviewEvent["kind"], string> = {
   redone: "Redo",
 };
 
-/**
- * The verification card: what the field is (canonical name + the document's
- * own label), its value, and the one passage it came from. For a value that
- * changed since the previous version, a single muted "was …" line plus the
- * same quote with the change marked inline replace the old multi-block diff.
- */
 export function ReviewCard({
   value: v,
+  version,
+  pageNumber,
+  onLocate,
   pinned,
   readOnly,
   busy,
@@ -40,6 +38,9 @@ export function ReviewCard({
   onClose,
 }: {
   value: Value;
+  version: number;
+  pageNumber?: number;
+  onLocate?: () => void;
   pinned: boolean;
   readOnly: boolean;
   busy: boolean;
@@ -60,13 +61,15 @@ export function ReviewCard({
   }, [v.id, correcting]);
 
   const latest = v.history.at(-1);
+  const { done, redo } = replay(v.history);
+  const steps = [...done, ...redo.slice().reverse()];
   const humanValue = latest?.state === "corrected";
   const status = displayStatus(v);
   const prev = v.previous;
   const changed = v.needsReReview && prev ? prev : null;
   const label = fieldLabel(v.field);
   const docLabel = documentLabel(v.evidence ?? prev?.evidence ?? null, label);
-  const quote = changed && changed.evidence && v.evidence ? diffInline(changed.evidence, v.evidence) : null;
+  const quote = changed && changed.evidence && v.evidence ? diffWords(changed.evidence, v.evidence) : null;
   const optimistic = isOptimistic(v.latestEventId);
 
   const submit = (e: FormEvent) => {
@@ -80,10 +83,8 @@ export function ReviewCard({
     <div className="space-y-3">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">
-            <span className="text-foreground">{label}</span>
-            {docLabel && <span> · “{docLabel}” in document</span>}
-          </p>
+          <h2 className="font-serif text-xl leading-tight">{label}</h2>
+          {docLabel && <p className="text-xs text-muted-foreground">“{docLabel}” in document</p>}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           {v.status === "carried_over" && <Chip title="Value and source passage unchanged from the previous version">Carried over from v{prev?.versionNumber ?? "–"}</Chip>}
@@ -101,55 +102,43 @@ export function ReviewCard({
         </div>
       </div>
 
-      <div>
-        {v.isGap && !humanValue ? (
-          <p className="font-serif text-2xl leading-tight text-gap">Not found</p>
-        ) : (
-          <p className="font-serif text-[28px] leading-tight break-words">
-            {humanValue ? (
-              <>
-                <span className="bg-corrected/12 px-1 text-corrected" title="Corrected by a reviewer">{formatValue(v.type, v.effectiveValue)}</span>
-                {v.value != null && (
-                  <span className="ml-2 align-middle font-sans text-sm text-muted-foreground line-through" title="What the model extracted">
-                    {formatValue(v.type, v.value)}
-                  </span>
-                )}
-              </>
-            ) : (
-              formatValue(v.type, v.value)
-            )}
-          </p>
-        )}
-        {changed && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            was <span className="text-foreground line-through decoration-muted-foreground/60">{formatValue(v.type, changed.effectiveValue ?? changed.value)}</span>{" "}
-            · {VALUE_META[changed.status === "carried_over" ? "approved" : changed.status].label.toLowerCase()} in v{changed.versionNumber}
-            {changed.note && <> · “{changed.note}”</>}
-          </p>
-        )}
-        {v.note && !changed && <p className="mt-1 text-xs text-muted-foreground italic">“{v.note}”</p>}
-      </div>
-
-      {v.isGap ? (
-        <p className="text-sm text-gap">{v.gapReason}</p>
-      ) : (
-        (quote || v.evidence) && (
-          <blockquote className="border-l-2 border-border bg-background/60 px-3 py-2 text-[13px] leading-relaxed">
-            {quote
-              ? quote.map((p, i) => (
-                  <span
-                    key={i}
-                    className={cn(
-                      p.kind === "del" && "text-muted-foreground line-through decoration-gap/70",
-                      p.kind === "add" && "bg-pending/15 px-0.5 text-foreground",
-                    )}
-                  >
-                    {p.text}
-                  </span>
-                ))
-              : v.evidence}
-          </blockquote>
-        )
+      <dl className="flex flex-wrap gap-x-8 gap-y-2">
+        <div>
+          <dt className="text-xs text-muted-foreground">Extracted in v{version}</dt>
+          <dd className="font-serif text-2xl break-words">{v.isGap ? "Not found" : formatValue(v.type, v.value)}</dd>
+        </div>
+        {humanValue && <div>
+          <dt className="text-xs text-muted-foreground">Reviewer correction</dt>
+          <dd className="font-serif text-2xl break-words text-corrected">{formatValue(v.type, v.effectiveValue)}</dd>
+        </div>}
+        {changed && <div>
+          <dt className="text-xs text-muted-foreground">{VALUE_META[changed.status].label} in v{changed.versionNumber}</dt>
+          <dd className="font-serif text-2xl text-muted-foreground">{changed.effectiveValue == null ? "Not found" : formatValue(v.type, changed.effectiveValue)}</dd>
+          {changed.note && <dd className="text-xs text-muted-foreground">Reviewer note · {changed.note}</dd>}
+        </div>}
+      </dl>
+      {v.note && <p className="text-xs">Reviewer note · {v.note}</p>}
+      {v.isGap ? <p className="text-sm text-gap">{v.gapReason}</p> : v.evidence && (
+        <div className="space-y-1 border-l-2 bg-background/60 px-3 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>Source passage · v{version}{pageNumber != null && ` · Page ${pageNumber}`}</span>
+            {onLocate && <button type="button" className="underline underline-offset-2" onClick={onLocate}>Show in document</button>}
+          </div>
+          <blockquote className="whitespace-pre-wrap text-sm">{v.evidence}</blockquote>
+        </div>
+      )}
+      {quote && changed && changed.evidence !== v.evidence && (
+        <details className="text-xs">
+          <summary className="cursor-pointer">Compare passages</summary>
+          {([[changed.versionNumber, quote.before], [version, quote.after]] as const).map(([number, parts]) => (
+            <div key={number} className="mt-2 flex gap-2">
+              <span className="font-mono text-muted-foreground">v{number}</span>
+              <p className="whitespace-pre-wrap">{parts.map((part, i) => part.kind === "del"
+                ? <del key={i} className="text-gap">{part.text}</del>
+                : part.kind === "add" ? <ins key={i} className="text-approved">{part.text}</ins> : part.text)}</p>
+            </div>
+          ))}
+        </details>
       )}
 
       {!readOnly && (
@@ -172,27 +161,28 @@ export function ReviewCard({
               <PencilLine /> {v.isGap ? "Enter value" : "Correct"}
               <kbd className="ml-1 hidden text-[10px] opacity-60 sm:inline">C</kbd>
             </Button>
-            <div className="flex-1" />
-            <button
-              type="button"
-              onClick={() => setShowHistory((s) => !s)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              aria-expanded={showHistory}
-            >
-              <History className="size-3.5" /> {v.history.length}
-            </button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="ghost" aria-label="Undo" onClick={onUndo} disabled={busy || optimistic || !v.canUndo}><Undo2 /></Button>
-              </TooltipTrigger>
-              <TooltipContent>Undo (U)</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="ghost" aria-label="Redo" onClick={onRedo} disabled={busy || optimistic || !v.canRedo}><Redo2 /></Button>
-              </TooltipTrigger>
-              <TooltipContent>Redo (Shift+U)</TooltipContent>
-            </Tooltip>
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowHistory((s) => !s)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                aria-expanded={showHistory}
+              >
+                <History className="size-3.5" /> Step {done.length} of {steps.length}
+              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon-sm" variant="ghost" aria-label="Undo" onClick={onUndo} disabled={busy || optimistic || !v.canUndo}><Undo2 /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo (U)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon-sm" variant="ghost" aria-label="Redo" onClick={onRedo} disabled={busy || optimistic || !v.canRedo}><Redo2 /></Button>
+                </TooltipTrigger>
+                <TooltipContent>Redo (Shift+U)</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         )
       )}
@@ -201,18 +191,19 @@ export function ReviewCard({
         <ol className="space-y-px border-l pl-3 text-xs">
           <li className="flex items-center justify-between gap-2 py-0.5">
             <span><span className="text-muted-foreground">Extracted · </span>{v.isGap ? "gap" : formatValue(v.type, v.value)}</span>
-            {!readOnly && latest && (
+            {!readOnly && done.length > 0 && (
               <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => onReview({ action: "reset" })} disabled={busy}>Restore</button>
             )}
           </li>
-          {v.history.map((e, i) => (
-            <li key={e.id} className={cn("flex items-center justify-between gap-2 py-0.5", i === v.history.length - 1 && "font-medium")}>
+          {steps.map((e) => (
+            <li key={e.id} className={cn("flex items-center justify-between gap-2 py-0.5", e.id === done.at(-1)?.id && "font-medium")}>
               <span className="min-w-0">
-                <span className={VALUE_META[e.state === "pending" ? "pending" : e.state].text}>{e.kind === "undone" || e.kind === "redone" ? KIND[e.kind] : e.state === "pending" ? "Back to review" : KIND[e.kind]}</span>
+                <span className={VALUE_META[e.state === "pending" ? "pending" : e.state].text}>{e.state === "pending" ? "Back to review" : KIND[e.kind]}</span>
+                {e.id === done.at(-1)?.id && " · Current"}
                 {e.state === "corrected" && <> → {formatValue(v.type, e.resultValue)}</>}
                 <span className="text-muted-foreground"> · {e.reviewer} · {timeAgo(e.createdAt)}</span>
               </span>
-              {!readOnly && i !== v.history.length - 1 && !isOptimistic(e.id) && (
+              {!readOnly && e.id !== done.at(-1)?.id && !isOptimistic(e.id) && (
                 <button type="button" className="shrink-0 text-muted-foreground hover:text-foreground" onClick={() => onReview({ action: "restore", eventId: e.id })} disabled={busy}>Restore</button>
               )}
             </li>

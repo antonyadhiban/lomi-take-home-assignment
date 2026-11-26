@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, FileStack } from "lucide-react";
+import { ChevronDown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { VersionStatus } from "@/lib/types";
 
-/** Version picker that always opens below its button, with "Upload new version" as the last item. */
 export function VersionMenu({
   versions,
   current,
@@ -33,27 +32,23 @@ export function VersionMenu({
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" className="gap-1.5 font-mono text-xs">
           v{viewing}
-          <span className="text-muted-foreground">{viewing === current ? "· current" : "· history"}</span>
+          <span className="hidden text-muted-foreground sm:inline">{viewing === current ? "· current" : "· history"}</span>
           <ChevronDown className="size-3.5 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="min-w-56">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Versions</DropdownMenuLabel>
+        <div className="flex items-center justify-between">
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Versions</DropdownMenuLabel>
+          <DropdownMenuItem onSelect={onUploadNew} className="gap-1.5 text-xs"><Upload /> Upload</DropdownMenuItem>
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={String(viewing)} onValueChange={(x) => onView(Number(x))}>
           {[...versions].reverse().map((x) => (
             <DropdownMenuRadioItem key={x.version} value={String(x.version)} className="font-mono text-xs">
               v{x.version}
-              <span className="ml-auto pl-4 font-sans text-muted-foreground">
-                {x.version === current ? "current" : x.status === "extracted" ? "" : x.status}
-              </span>
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onUploadNew}>
-          <FileStack /> Upload new version…
-          <span className="ml-auto pl-4 text-xs text-muted-foreground">v{versions.length + 1}</span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
