@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "seed": "node dist/seed.js"
   },
   "dependencies": {
     "@fastify/cors": "11.4.3",
@@ -18,7 +19,8 @@
     "@lomi/db": "workspace:*",
     "@lomi/queue": "workspace:*",
     "@lomi/storage": "workspace:*",
-    "fastify": "5.12.8"
+    "fastify": "5.12.8",
+    "@lomi/services": "workspace:*"
   },
   "devDependencies": {
     "@lomi/eslint-config": "workspace:*",

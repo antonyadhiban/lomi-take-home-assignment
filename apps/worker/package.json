@@ -17,7 +17,8 @@
     "@lomi/extraction": "workspace:*",
     "@lomi/queue": "workspace:*",
     "@lomi/storage": "workspace:*",
-    "bullmq": "6.7.10"
+    "bullmq": "6.7.10",
+    "@lomi/services": "workspace:*"
   },
   "devDependencies": {
     "@lomi/eslint-config": "workspace:*",

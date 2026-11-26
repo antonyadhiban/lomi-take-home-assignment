@@ -22,5 +22,7 @@ FROM base AS runner
 ARG APP
 ENV NODE_ENV=production APP=${APP}
 COPY --from=builder /repo .
+# fixtures are outside every workspace package, so turbo prune drops them; the seed needs them
+COPY --from=pruner /repo/fixtures ./fixtures
 WORKDIR /repo/apps/${APP}
 CMD ["sh", "-c", "pnpm start"]

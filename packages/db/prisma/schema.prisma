@@ -27,10 +27,18 @@ enum RunStatus {
   cancelled
 }
 
+/// Effective review state of a value after an event (denormalized onto every
+/// event so the latest event alone answers "what state is this value in").
+enum ReviewState {
+  pending
+  approved
+  corrected
+}
+
 enum ReviewKind {
   approved
   corrected
-  restored     // undo/redo/restore: re-applies the state of an earlier event
+  restored     // undo/redo/restore: re-applies an earlier state (or back to pending)
   carried_over // copied from the previous version because evidence + value were unchanged
 }
 
@@ -77,6 +85,11 @@ model ExtractionRun {
   attempt     Int
   status      RunStatus       @default(queued)
   leaseUntil  DateTime?
+  /// random token set on every claim; a commit only lands if the token still
+  /// matches, so a worker whose lease expired can't overwrite a newer claim
+  claimToken  String?
+  /// how many times a worker has claimed this run (crash loops -> failed)
+  claims      Int             @default(0)
   model       String?
   prompt      String?
   rawResponse Json?
@@ -124,7 +137,10 @@ model ReviewEvent {
   valueId        String
   value          ExtractedValue @relation(fields: [valueId], references: [id])
   kind           ReviewKind
-  /// effective value after this event (the corrected value for `corrected`)
+  /// effective state after this event
+  state          ReviewState
+  /// effective value after this event: the corrected value when state=corrected,
+  /// the extracted value when approved, null when pending
   resultValue    String?
   note           String?
   reviewer       String         @default("reviewer")

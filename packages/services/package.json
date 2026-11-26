@@ -1,0 +1,36 @@
+{
+  "name": "@lomi/services",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@lomi/core": "workspace:*",
+    "@lomi/db": "workspace:*",
+    "@lomi/extraction": "workspace:*",
+    "@lomi/queue": "workspace:*",
+    "@lomi/storage": "workspace:*",
+    "bullmq": "6.7.10"
+  },
+  "devDependencies": {
+    "@lomi/eslint-config": "workspace:*",
+    "@lomi/tsconfig": "workspace:*",
+    "@types/node": "26.6.11",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.2",
+    "pg": "8.23.1",
+    "@types/pg": "8.23.1"
+  }
+}

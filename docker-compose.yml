@@ -1,4 +1,4 @@
-# `docker compose up` starts infra, runs migrations (+ seed, once implemented),
+# `docker compose up` starts infra, runs migrations + seed,
 # then the API, worker and web UI.
 x-app-env: &app-env
   DATABASE_URL: postgresql://lomi:lomi@postgres:5432/lomi
@@ -42,10 +42,12 @@ services:
   migrate:
     build: { context: ., args: { APP: api } }
     environment: *app-env
-    working_dir: /repo/packages/db
-    command: ["sh", "-c", "pnpm migrate:deploy"]
+    # migrations, then seed v1 of every fixture (idempotent), then exit
+    command: ["sh", "-c", "cd /repo/packages/db && pnpm migrate:deploy && cd /repo/apps/api && node dist/seed.js"]
     depends_on:
       postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      s3: { condition: service_started }
     restart: "no"
 
   api:

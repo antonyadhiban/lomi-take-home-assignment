@@ -32,6 +32,9 @@ importers:
       '@lomi/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      '@lomi/services':
+        specifier: workspace:*
+        version: link:../../packages/services
       '@lomi/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -112,6 +115,9 @@ importers:
       '@lomi/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      '@lomi/services':
+        specifier: workspace:*
+        version: link:../../packages/services
       '@lomi/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -272,6 +278,52 @@ importers:
       eslint:
         specifier: 10.15.0
         version: 10.15.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.1.2
+        version: 5.1.2(@types/node@26.6.11)(vite@8.3.8(@types/node@26.6.11)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
+  packages/services:
+    dependencies:
+      '@lomi/core':
+        specifier: workspace:*
+        version: link:../core
+      '@lomi/db':
+        specifier: workspace:*
+        version: link:../db
+      '@lomi/extraction':
+        specifier: workspace:*
+        version: link:../extraction
+      '@lomi/queue':
+        specifier: workspace:*
+        version: link:../queue
+      '@lomi/storage':
+        specifier: workspace:*
+        version: link:../storage
+      bullmq:
+        specifier: 6.7.10
+        version: 6.7.10(ioredis@6.1.0)(pg@8.23.1)
+    devDependencies:
+      '@lomi/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@lomi/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/node':
+        specifier: 26.6.11
+        version: 26.6.11
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
+      eslint:
+        specifier: 10.15.0
+        version: 10.15.0(jiti@2.7.0)
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
       typescript:
         specifier: 6.0.3
         version: 6.0.3

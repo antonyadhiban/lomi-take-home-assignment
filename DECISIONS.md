@@ -33,6 +33,7 @@ apps/web          Next.js review UI (Vercel)
 apps/api          Fastify HTTP API (Railway)
 apps/worker       BullMQ worker + reconciler (Railway)
 packages/core     pure domain: field defs, normalization, evidence check, carry-over rule
+packages/services transport-agnostic use cases: upload/version/retry, extraction run, reconciler, reads, reviews, seed
 packages/db       Prisma schema, migrations, client, seed
 packages/queue    BullMQ queue name, job type, Redis connection
 packages/storage  S3 client wrapper
@@ -41,4 +42,20 @@ packages/tsconfig, packages/eslint-config  shared tooling
 e2e               Playwright tests
 ```
 
-`core` has no I/O, so the rules the brief tests most heavily (hallucination defense, carry-over) are unit-testable in milliseconds.
+`apps/api` and `apps/worker` are thin adapters (HTTP, BullMQ) over `services`, so integration tests drive the real logic against real Postgres/Redis without HTTP or a live worker. `core` has no I/O, so the rules the brief tests most heavily (hallucination defense, carry-over) are unit-testable in milliseconds.
+
+## Recovery timing
+
+A run whose worker died stays `extracting` until its lease (60s, extended every 20s by a live worker's heartbeat) expires; the reconciler (every 30s, and on boot) then re-enqueues it. Worst case about 90s from crash to re-extraction. Measured: kill the worker mid-extraction, `FLUSHALL`, `docker compose restart` → extracted in 64s. A run whose worker died 3 times is marked `failed` (retryable) instead of looping forever.
+
+## Verified behaviours (integration tests in `packages/services/test`)
+
+- upload returns before extraction; a queued run is in Postgres and a job in Redis
+- concurrent / repeated processing of the same run → one commit, no duplicate values
+- hallucinated evidence → gap with reason
+- LLM failure → `failed` with error, retryable; a double retry is rejected
+- expired lease → reclaimed; live lease → not stolen; stale commit after takeover → discarded
+- invoice v1 → v2: exactly `due_date` and `total_amount` back to pending, with previous value/review; corrections carry over; v1 stays queryable with its own text
+- new version while previous queued or mid-LLM-call → previous superseded, its result discarded
+- reconciler after Redis loss → re-enqueued exactly once, including when BullMQ retained a finished job with the same id
+- reviews: corrections validated by type, restore/reset (undo), optimistic concurrency, old versions read-only
