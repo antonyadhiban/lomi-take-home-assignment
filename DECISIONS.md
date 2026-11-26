@@ -59,3 +59,11 @@ A run whose worker died stays `extracting` until its lease (60s, extended every 
 - new version while previous queued or mid-LLM-call → previous superseded, its result discarded
 - reconciler after Redis loss → re-enqueued exactly once, including when BullMQ retained a finished job with the same id
 - reviews: corrections validated by type, restore/reset (undo), optimistic concurrency, old versions read-only
+
+## Deployment (live)
+
+- **Web:** https://lomi-take-home.vercel.app (Vercel). Built locally with `vercel build` and shipped with `vercel deploy --prebuilt`, because the project root is `apps/web` inside the monorepo and the build must run through turbo from the repo root (`apps/web/vercel.json`). Pushes don't deploy it automatically yet.
+- **API:** https://api-production-7892467b.up.railway.app (Railway). Migrations + idempotent fixture seed run on start (`RUN_MIGRATIONS=true`).
+- **Worker, Postgres, Redis, object storage:** the same Railway project, over private networking. PDFs live in a Railway bucket (S3-compatible, virtual-host URLs), so the storage code is identical to local dev.
+- **CORS:** the API allows only the Vercel origin.
+- **Redeploy:** `railway up --service api|worker`; web: `npx vercel@latest build --prod && npx vercel@latest deploy --prebuilt --prod`.

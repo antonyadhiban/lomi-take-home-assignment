@@ -25,4 +25,6 @@ COPY --from=builder /repo .
 # fixtures are outside every workspace package, so turbo prune drops them; the seed needs them
 COPY --from=pruner /repo/fixtures ./fixtures
 WORKDIR /repo/apps/${APP}
-CMD ["sh", "-c", "pnpm start"]
+# RUN_MIGRATIONS=true (set on the API in production) applies migrations and the
+# idempotent fixture seed before starting; compose uses a separate migrate service.
+CMD ["sh", "-c", "if [ \"$RUN_MIGRATIONS\" = true ]; then (cd /repo/packages/db && pnpm migrate:deploy) && (cd /repo/apps/api && node dist/seed.js) || exit 1; fi; exec pnpm start"]

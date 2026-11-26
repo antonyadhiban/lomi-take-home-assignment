@@ -14,8 +14,9 @@ export interface ExtractionJob {
 
 export function createRedis(url = process.env.REDIS_URL): Redis {
   if (!url) throw new Error("REDIS_URL is not set");
-  // BullMQ requires maxRetriesPerRequest: null for blocking connections
-  return new Redis(url, { maxRetriesPerRequest: null });
+  // BullMQ requires maxRetriesPerRequest: null for blocking connections.
+  // family: 0 resolves IPv4 and IPv6 (Railway's private network can be IPv6-only).
+  return new Redis(url, { maxRetriesPerRequest: null, family: 0 });
 }
 
 export function createExtractionQueue(connection: Redis): Queue<ExtractionJob> {
