@@ -1,8 +1,0 @@
-{
-  "name": "@lomi/e2e",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": { "test:e2e": "playwright test --pass-with-no-tests" },
-  "devDependencies": { "@playwright/test": "1.65.1", "@types/node": "26.6.11" }
-}

@@ -14,7 +14,9 @@ const deps: Deps = {
   prisma,
   storage: createStorage(),
   queue: createExtractionQueue(queueConn),
-  provider: createOpenRouterProvider(),
+  // Without a key the worker still runs: each run fails visibly ("set
+  // OPENROUTER_API_KEY") and stays retryable, instead of a crash loop.
+  provider: process.env.OPENROUTER_API_KEY ? createOpenRouterProvider() : undefined,
   log: console,
 };
 
@@ -49,7 +51,8 @@ const tick = async () => {
 };
 await tick();
 const timer = setInterval(tick, RECONCILE_EVERY_MS);
-console.info(`worker started (model: ${deps.provider?.model})`);
+if (!deps.provider) console.warn("OPENROUTER_API_KEY is not set: extraction runs will fail (retryable) until it is");
+console.info(`worker started (model: ${deps.provider?.model ?? "none"})`);
 
 const shutdown = async () => {
   clearInterval(timer);

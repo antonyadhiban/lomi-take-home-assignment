@@ -17,7 +17,7 @@ The final README summarizes these; this file keeps the reasoning.
 | 10 | Redis ↔ Postgres consistency | **Postgres is truth + reconciler** | `ExtractionRun` (status, attempt, lease) lives in Postgres. On boot and every 30s the worker re-enqueues runs that are `queued`, or `running` with an expired lease. BullMQ `jobId = runId` makes re-enqueue idempotent. This covers restarts, killed containers and `FLUSHALL`. |
 | 11 | API access from the browser | **Browser calls the Railway API directly**; CORS allowlist via `CORS_ORIGINS` | No Vercel body-size limit on PDF uploads; the API is a plain public service. `NEXT_PUBLIC_API_URL` is set at build time. |
 | 12 | File storage | **S3-compatible object storage from day one**; parsed text per version stored in Postgres | Originals in S3 (SeaweedFS locally, since MinIO no longer publishes images; S3/R2 in prod). Parsed text lives in Postgres because evidence validation and the review UI for version N must always use version N's text. |
-| 13 | Tests | **Vitest** (unit + integration against real Postgres/Redis, fake LLM provider) + **Playwright** e2e | Unit tests cover normalization/evidence/carry-over; integration tests cover duplicate runs, crash mid-extract, FLUSHALL, supersede; e2e covers upload → review → re-extract. |
+| 13 | Tests | **Vitest** (unit + integration against real Postgres/Redis, fake LLM provider) (Playwright e2e planned, **cut for time**) | Unit tests cover normalization/evidence/carry-over; integration tests cover duplicate runs, crash mid-extract, FLUSHALL, supersede. A browser test of upload → review → re-extract is the first thing to add. |
 
 ## Idempotency layers (decision 10, in detail)
 
@@ -39,7 +39,6 @@ packages/queue    BullMQ queue name, job type, Redis connection
 packages/storage  S3 client wrapper
 packages/extraction  PDF parsing + LLM provider interface (OpenRouter) + model eval
 packages/tsconfig, packages/eslint-config  shared tooling
-e2e               Playwright tests
 ```
 
 `apps/api` and `apps/worker` are thin adapters (HTTP, BullMQ) over `services`, so integration tests drive the real logic against real Postgres/Redis without HTTP or a live worker. `core` has no I/O, so the rules the brief tests most heavily (hallucination defense, carry-over) are unit-testable in milliseconds.

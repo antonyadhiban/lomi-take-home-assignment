@@ -1,36 +1,71 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV"],
+  "globalEnv": [
+    "NODE_ENV"
+  ],
   "tasks": {
     "db:generate": {
-      "inputs": ["prisma/**"],
-      "outputs": ["src/generated/**"],
+      "inputs": [
+        "prisma/**"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ],
       "cache": true
     },
     "build": {
-      "dependsOn": ["^build", "db:generate"],
-      "inputs": ["$TURBO_DEFAULT$", "!**/*.test.ts", "!README.md"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
-      "env": ["NEXT_PUBLIC_API_URL"]
+      "dependsOn": [
+        "^build",
+        "db:generate"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.test.ts",
+        "!README.md"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "NEXT_PUBLIC_API_URL"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^build", "db:generate"]
+      "dependsOn": [
+        "^build",
+        "db:generate"
+      ]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
-      "dependsOn": ["^build", "db:generate"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["coverage/**"],
-      "env": ["DATABASE_URL", "TEST_DATABASE_URL", "REDIS_URL", "S3_*"]
-    },
-    "test:e2e": {
-      "dependsOn": ["build"],
-      "cache": false
+      "dependsOn": [
+        "^build",
+        "db:generate"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "outputs": [
+        "coverage/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "TEST_DATABASE_URL",
+        "REDIS_URL",
+        "S3_*"
+      ]
     },
     "dev": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": [
+        "^build",
+        "db:generate"
+      ],
       "cache": false,
       "persistent": true
     }

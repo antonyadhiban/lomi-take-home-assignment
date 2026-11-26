@@ -1,130 +1,166 @@
-# Take-Home Assignment — Senior Full Stack Engineer, Lomi Labs
+# Document review: PDF → LLM extraction → human review
 
-Thanks for making it to this stage. This assignment is a miniature of the kind of system you'd build with us: PDF documents go in, an LLM extracts structured values, and a human reviews every value before it's trusted — including when a document comes back revised.
+PDFs go in, an LLM extracts each field together with the exact passage it came from, and a reviewer approves or corrects every value beside its source. When a revised PDF arrives, reviews whose evidence didn't change carry over; only what changed comes back for review.
 
-**Deadline: Saturday 28 November 2026 at 23:59 UTC.**
-
-We'd rather see a smaller thing done well than everything half-done. If you run out of time, cut scope deliberately and say so in your README — knowing what to cut is part of what we're evaluating.
-
-A note before you start: some decisions in this brief are deliberately left open, and some of the options we mention are deliberately tempting. There is no single correct architecture — but every choice you make is part of the evaluation.
+- **Live:** https://lomi-take-home.vercel.app (UI) · https://api-production-7892467b.up.railway.app (API)
+- **The brief:** [BRIEF.md](BRIEF.md) · **decision log with full reasoning:** [DECISIONS.md](DECISIONS.md)
 
 ---
 
-## The problem
-
-Our clients send us documents as PDFs (invoices, leases, reports). We extract key values from them with an LLM, but extraction is never trusted blindly: a reviewer checks each extracted value against the exact passage it came from and approves or corrects it. And documents change — a client sends a revised version, and the work already reviewed must not be thrown away.
-
-Build a small app that does this end to end:
-
-1. **Ingest** a PDF document.
-2. **Extract** values from it with an LLM.
-3. **Review** each value in a web UI — see it beside its source quote, approve it or correct it.
-4. **Re-extract** when a new version of the document arrives — carrying over reviews whose evidence didn't change.
-
-## What we provide
-
-The `fixtures/` folder in this repo:
-
-- `fixtures/documents/` — four sample PDFs: an invoice, a **revised version of the same invoice**, a lease excerpt, and a market report excerpt.
-- `fixtures/documents.json` — the manifest: each document's id, type, title, and versions. Seed only version 1 of each document; the invoice's version 2 exists so you (and we) can exercise re-extraction by uploading it.
-- `fixtures/expected-fields.json` — the fields to extract per document type.
-
-## What you build
-
-### 0. A monorepo
-
-Structure the project as a **single monorepo managed with Turborepo** (on top of pnpm or yarn workspaces), with a task pipeline that actually does something — build, test, and lint wired through `turbo.json`, not a decorative config. How you split it into packages and where you draw the boundaries is entirely up to you, and it's part of what we evaluate. One `docker compose up` at the repo root must still start everything.
-
-### 1. API (Node.js + TypeScript)
-
-- `POST /documents` — upload a PDF (type + file).
-- `POST /documents/:id/versions` — upload a new PDF for an existing document.
-- `GET /documents/:id` — current version, status (`queued`, `extracting`, `extracted`, `failed`), and the extracted values once ready.
-- `POST /values/:id/review` — approve a value as-is, or correct it. Whether a correction replaces the value or lives beside it as an annotation is your call — pick one model and keep the API and UI consistent with it.
-- `GET /documents/:id/progress` — counts of pending / approved / corrected / carried-over values.
-
-Express, Nest, Fastify — your choice. **Postgres is the system of record** for documents, values, and reviews. **Extraction work runs through a Redis-backed job queue** (BullMQ or similar). Draw the Redis/Postgres line carefully: Redis coordinates work; anything that must survive — extracted values, reviews, job outcomes a user can see — lives in Postgres. Where exactly you put that line, and how the two stay consistent when one of them fails, is part of what we evaluate.
-
-### 2. Extraction: PDF → LLM
-
-The extraction itself is **LLM-based — this is not optional**. Parse the PDF's text (any library you like), send it to an LLM (Anthropic, OpenAI, or any provider with structured output — your choice), and ask for the document type's expected fields.
-
-How extraction runs is yours to design, but these behaviors are required and we test them:
-
-- **Uploading must feel instant.** `POST /documents` responds right away; extraction takes as long as the LLM takes, and the UI shows the document's status while it's underway. An upload must never wait for the LLM.
-- **A restart must not lose work.** If we `docker compose restart` (or kill a container) mid-extraction, the system comes back and the document either completes or is visibly retryable — never stuck in `extracting` forever, never silently lost.
-- **Extracting the same document version twice must not duplicate values** — however the second run happens (a retry, a crash recovery, an impatient user).
-- **A failure is a state, not an exception.** An LLM or parsing error leaves the document visibly `failed` and retryable.
-- **A Redis flush is not a disaster.** If we run `FLUSHALL` on Redis and restart the stack, no extracted value, review, or visible job outcome is lost, and any document that was mid-extraction ends up completed or visibly retryable — never stuck. We will do this.
-
-And for the extraction's output:
-
-- **Each extracted value must carry its evidence**: the exact passage of the document it came from. You must **validate that the quoted evidence actually appears verbatim in the parsed text of the version being extracted** — a value whose evidence doesn't appear there is stored as a **gap** (`value: null`, with a reason), never kept. This is your hallucination defense, and we test it.
-- A field the LLM can't find is a **gap with a reason**, never a guess.
-- Whether you store each version's parsed text or re-parse on demand is your call — but evidence validation and the review UI for version N must always work against version N's text, including after version N+1 exists.
-- The sample documents are a page each — a full test cycle costs well under a dollar on any mainstream model. Keep the prompt and the raw LLM response stored or logged per extraction so it's debuggable.
-
-### 3. Re-extraction and review carry-over
-
-When a new version of a document is uploaded and extracted:
-
-- A value whose **evidence is unchanged** between versions keeps its review (approval or correction) and is marked **carried over**.
-- A value whose evidence **changed** goes back to **pending**, with the previous version's value and review shown beside it so the reviewer sees what changed.
-- Nothing from the old version is deleted: earlier versions and their reviews remain queryable.
-- A new version can arrive **while the previous one is still extracting**. Decide what happens — reject, queue, supersede — and document it. We will try it.
-
-Deciding what "unchanged" means — and making it hold up when the whole document's text shifts around — is yours to design. Explain your approach in the README. The revised invoice in `fixtures/` changes two fields and leaves the rest alone; after uploading it, a reviewer should have exactly the changed values to re-review.
-
-### 4. Review UI (React — Next.js or Vite, your choice)
-
-- A document list with extraction status, current version, and review progress. Whether the UI polls, streams, or refreshes on demand is your call — pick what this problem actually needs and say why.
-- A document detail view: each extracted value shown **beside its source quote** (highlighting the quote within the document text is a nice touch, not a requirement).
-- Approve / correct actions per value. Corrections need a value and optionally a note.
-- Gaps visible with their reasons, never hidden.
-- After a re-extraction: carried-over values distinguishable from newly pending ones, and changed values showing their previous value and review.
-
-Polish matters less than clarity: a reviewer should understand what needs their attention within five seconds of opening the page.
-
-### 5. Running locally
+## Run it
 
 ```sh
+cp .env.example .env        # put your OPENROUTER_API_KEY in it
 docker compose up
 ```
 
-at the repo root must start everything your system needs, run migrations, and seed version 1 of the sample documents from `fixtures/` so we can click around immediately.
-If you are able to deploy, share us the live link.
+Open http://localhost:3000. Compose starts Postgres, Redis, S3-compatible storage (SeaweedFS), runs migrations, seeds **v1** of the three fixtures, then starts the API (:4000), worker and UI (:3000). Without a key everything still runs, but each extraction ends `failed` with "set OPENROUTER_API_KEY"; add the key, `docker compose up -d worker`, then hit *Retry* on the document.
 
-### 6. Tests
+**What to click first**
 
-Test what's most likely to break.
+1. **Market report**: six fields; *Median household income* isn't in the document, so it's a **gap** with the model's reason, not a guess.
+2. **Invoice**: hover a highlighted passage in the document, or a field in the sidebar, and it lights up in both places. Click to review it in the panel at the bottom of the sidebar. Approve (`A`), correct (`C`), undo/redo (`U` / `Shift+U`), move between fields with `J`/`K`.
+3. Approve everything on the invoice, then **drag `fixtures/documents/invoice-001.v2.pdf` onto the page** (or use *New version*). It asks to upload it as v2; when it's extracted, exactly **Due date** and **Total amount** are back under review, each showing the v1 value, its review, and a word diff of the evidence. The other three keep their approvals ("Carried over from v1" in the panel). The version picker still shows v1, read-only, with its own text and reviews.
+4. Drop any PDF on the documents list to start a new document.
 
-### 7. README
+**Tests and tooling**
 
-Short, written for an engineer joining the project:
+```sh
+pnpm install
+docker compose up -d postgres redis   # integration tests use real Postgres + Redis
+pnpm test                             # turbo: builds deps, runs unit + integration tests
+pnpm lint && pnpm typecheck
+pnpm eval:models                      # re-run the LLM comparison (needs OPENROUTER_API_KEY)
+```
 
-- How to run it and what to click first.
-- How the monorepo is laid out and why.
-- Your schema and why — especially how versions, values, and reviews relate.
-- How extraction is coordinated: what lives in Redis, what lives in Postgres, and how they stay consistent when one fails.
-- The open decisions this brief left you, what you chose, and why.
-- What you cut for time, and what you'd do next.
-- Anything you'd change at 10,000 documents.
+---
 
-## Rules
+## Monorepo layout
 
-- **AI coding tools are allowed and expected** — we use them daily. You own every line you submit: the interview digs into your design decisions, and "the AI wrote that part" is not an answer we can hire on. You should submit your coding agent session logs along with the code.
-  - _Getting your logs from Claude Code:_ every session is saved as a JSONL file under `~/.claude/projects/<your-project-folder>/` — copy the `.jsonl` files for the sessions you used. Alternatively, run `/export` inside a session to save that conversation as a readable file. Other tools (Cursor, Codex, etc.): export or copy whatever session history the tool provides.
-  - _Where to put them:_ upload the exported log(s) to a **public GitHub Gist** ([gist.github.com](https://gist.github.com)) — one gist, one file per session — and submit the gist link. Don't attach raw `.jsonl` files and don't commit them into the repo.
-- **Any libraries you like.** Prisma, Drizzle, raw SQL; any PDF parser; any LLM SDK. Choose what you'd defend.
+pnpm workspaces + Turborepo. `build`, `typecheck`, `lint` and `test` all go through `turbo.json`; `test` depends on `^build` and `db:generate`, so a cold `pnpm test` generates the Prisma client and builds the packages it needs first.
 
-## Submitting
+```
+apps/
+  web        Next.js review UI                 → Vercel
+  api        Fastify HTTP API (thin)           → Railway
+  worker     BullMQ consumer + reconciler      → Railway
+packages/
+  core       pure domain, no I/O: field definitions, normalization,
+             evidence check, extraction validation, carry-over rule
+  services   use cases over Postgres/Redis/S3: upload, new version,
+             retry, run processing, reconciler, read models, reviews, seed
+  db         Prisma schema, migrations, client
+  extraction OpenRouter provider, prompt, PDF parsing, model eval harness
+  queue      BullMQ queue/job definition and Redis connection
+  storage    S3 client (SeaweedFS locally, Railway bucket in prod)
+  tsconfig, eslint-config   shared tooling
+```
 
-Submit everything at **[submit.lomilabs.ai](https://submit.lomilabs.ai)** — that portal is the only submission channel, so don't email it to us.
+The boundaries follow what changes for different reasons:
 
-What to include:
+- **`core` holds the rules the brief tests hardest** (hallucination defense, "unchanged" across versions). It has no I/O, so those rules are unit-tested in milliseconds.
+- **`services` holds every use case; `api` and `worker` are adapters** (HTTP and BullMQ). The integration tests call `services` directly against real Postgres and Redis, with no HTTP server or live worker, and they exercise exactly the code production runs.
+- **`extraction` sits behind an `ExtractionProvider` interface.** Tests use a deterministic fake that reads the real fixture text; the eval harness uses the real provider through the same validation path the worker uses.
+- **One Dockerfile** builds any Node app (`--build-arg APP=api|worker|web`), using `turbo prune` so each image installs only what that app needs.
 
-1. **Code** — your git repo link, public or with access granted to us. If you deployed it, the live link too.
-2. **Coding agent session log** — the gist link from the Rules section above. Make sure the gist is public, not secret.
-3. **Explanation video — bonus, and it counts for a lot.** Not required, but a few minutes of you walking us through the app and talking through the decisions you made — what you chose, what you cut, what you'd do differently — tells us more than the code alone, and it's the best way to show the thinking behind it. Upload it to **[Loom](https://loom.com)**, **[Cap.so](https://cap.so)**, or **Google Drive**, and set sharing so **anyone with the link can view** it (on Drive: _Anyone with the link_ → _Viewer_). Open the link in an incognito window before you submit — a link only you can see is the same as no link.
+---
 
-Double-check every link you submit resolves for someone who isn't you.
+## Schema
+
+```mermaid
+erDiagram
+  Document ||--o{ DocumentVersion : has
+  Document |o--|| DocumentVersion : "currentVersion"
+  DocumentVersion ||--o{ ExtractionRun : "attempts"
+  DocumentVersion ||--o{ ExtractedValue : "one per field"
+  ExtractionRun ||--o{ ExtractedValue : produced
+  ExtractedValue |o--o| ExtractedValue : "previousValue (same field, prior version)"
+  ExtractedValue ||--o{ ReviewEvent : "append-only history"
+  ReviewEvent |o--o| ReviewEvent : "sourceEvent (restore / carry-over)"
+```
+
+- **`DocumentVersion`** is the unit of extraction. It stores the S3 key and sha256 of the PDF and the **parsed text**, so evidence validation and the review UI for version N always use N's own text, even after N+1 exists. Its status is `queued | extracting | extracted | failed | superseded`.
+- **`ExtractionRun`** is one attempt to extract a version: status, lease, claim token, claim count, plus the **full prompt and raw LLM response** for debugging. Retries create a new run (`attempt + 1`); crash recovery reclaims the same run.
+- **`ExtractedValue`** is **immutable LLM output**: value, normalized value, verbatim evidence, or `null` + `gapReason`. `UNIQUE(versionId, field)` makes extraction idempotent. `previousValueId` links the same field across versions; that's how the UI shows "v1 was X, approved".
+- **`ReviewEvent`** is an **append-only** log per value. Every human action (approve, correct, restore/undo, reset) and every system carry-over is an event; each event also stores the effective `state` and value after it, so the latest event alone says what the value is now.
+
+**Corrections live beside the value, never over it.** The model's output and evidence are never edited, so you can always answer "what did the LLM say, and what did a human decide?", and carry-over can compare evidence that was never touched. The UI shows the effective value inline, with the model's value struck through beside it. Undo/redo just appends `restored` events, so history stays complete.
+
+---
+
+## How extraction is coordinated
+
+**Postgres is the source of truth; Redis only coordinates.** A BullMQ job carries nothing but a run id. Everything a user can see (versions, run outcomes, values, reviews) is in Postgres.
+
+```
+POST /documents ─► S3 put ─► tx{ Document, Version(queued), Run(queued) } ─► enqueue(jobId = runId) ─► 202
+                                                                               │ (best effort; if Redis is
+                                                                               │  down, the reconciler enqueues)
+worker ─► claim run (atomic UPDATE … WHERE queued OR lease expired; new claim token, lease 60s)
+       ─► parse PDF once, store text ─► LLM ─► validate evidence ─► tx{ lock run, check token,
+          insert values, carry-over events, run → succeeded, version → extracted }
+```
+
+How each failure the brief tests is handled:
+
+| Scenario | What happens |
+|---|---|
+| Upload | Returns 202 once the PDF is stored and the run is recorded; the LLM is never on the request path. |
+| Same version extracted twice (retry, crash recovery, impatient user) | Only one worker can claim a run; a commit only lands if its claim token still matches; `UNIQUE(versionId, field)` is the backstop; a partial unique index allows one active run per version; `jobId = runId` dedupes in BullMQ. |
+| Worker killed mid-extraction | The run stays `extracting` until its lease expires (a live worker heartbeats every 20s). The **reconciler** (on worker boot, then every 30s) re-enqueues it and another claim picks it up. After 3 crashed claims, the run is `failed` (retryable) instead of looping. |
+| `FLUSHALL` + restart | Nothing to lose: Redis held only copies of run ids. On boot the reconciler re-enqueues every `queued` run and every expired `running` one. It removes finished BullMQ jobs with the same id first, because BullMQ silently ignores `add()` for a retained jobId. Measured: kill the worker mid-run, `FLUSHALL`, `docker compose restart` → extracted 64s later, reviews untouched. |
+| LLM / parse / malformed-output error | Recorded on the run and the version as `failed` with the message; `POST /documents/:id/retry` creates attempt N+1. Never an unhandled exception. |
+| Stale worker finishes late | Its claim token no longer matches, so the commit is discarded. |
+
+**Hallucination defense.** Every quote must appear verbatim in this version's parsed text. Whitespace, line breaks, ligatures and typographic quotes are folded; case and digits are not. Anything else becomes a gap with a reason: the quote isn't in the text, the value isn't a valid date/amount/number, the field is missing from the response, or the model said the field isn't present. The rejected value is kept for debugging but never shown as a value.
+
+---
+
+## Decisions the brief left open
+
+Short versions; [DECISIONS.md](DECISIONS.md) has the reasoning.
+
+| Decision | Choice |
+|---|---|
+| **New version while the previous one is still extracting** | **Supersede.** Accept v(N+1) immediately; mark vN `superseded` and cancel its run in the same transaction (uploads for one document are serialized with a row lock). If vN's LLM call finishes later, its commit is discarded. Carry-over diffs against the last *extracted* version. Uploading identical bytes is a no-op (200). |
+| **What "unchanged" means** | Same field, same **canonical value** (`$5,230.29` = `5230.29`), **and the prior version's evidence passage still appears verbatim in the new text**. It doesn't depend on positions, so inserted paragraphs don't matter, and it doesn't rely on the LLM picking the same quote twice. v2 of the invoice repeats "2025-09-14" in a new sentence, so a quote-equality rule could wrongly flag *issue date*. Gaps never carry over. Fuzzy matching was rejected: it can wave through `$5,230` vs `$5,280`. |
+| **Correction model** | Annotation beside the value (see Schema). |
+| **Parsed text** | Stored per version, parsed once. |
+| **UI freshness** | Poll every 2s **only while something is queued/extracting**, otherwise refresh on focus. Extraction takes seconds and reviewers are few; SSE would add pub/sub fan-out and long-lived cross-origin connections for no real gain. |
+| **LLM** | OpenRouter (strict JSON-schema output), default **`openai/gpt-6-luna`**, set by `EXTRACTION_MODEL`. Chosen from a recorded eval of 8 models × 4 fixtures × 2 runs through the real validation path ([results](packages/extraction/eval/RESULTS.md)). 7 of 8 scored 100% and none invented the missing income field, so the fixtures don't separate models on accuracy. Luna was the cheapest ($0.00019/doc) and among the fastest (2.7s p50). Because of the evidence check, a cheap model's failure mode is more gaps to review, not silent wrong values. |
+| **Hosting** | UI on Vercel; API, worker, Postgres, Redis and a bucket on Railway (BullMQ needs a long-running worker, which serverless functions can't host). |
+| **Files** | Original PDFs in S3-compatible object storage, content-addressed keys. |
+
+The UI's design language is a visual reference to [Midday](https://github.com/midday-ai/midday). Midday is AGPL, so no code was copied; components are shadcn/ui (MIT) with our own tokens.
+
+---
+
+## Performance notes
+
+From inside the API container, the endpoints answer in **10–40ms**. Every response carries a `Server-Timing` header, so the browser's network panel shows server time next to total time. From Asia, total latency is ~400ms because everything runs in Railway's US East region; that's network distance, not code. So the UI is built not to wait on the network:
+- review actions are optimistic and roll back with a toast on failure
+- the document list prefetches details on hover
+- cached data shows instantly and refreshes in the background
+- the previous extracted version stays on screen while the next one extracts
+
+---
+
+## What I cut, and what's next
+
+- **Playwright end-to-end tests.** The integration tests cover the behaviours the brief tests (idempotency, crash recovery, FLUSHALL, supersede, carry-over, hallucinated evidence, reviews), but nothing drives the browser. Next: upload → review → drop v2 → assert only two values pending.
+- **CI.** The turbo pipeline is real, but there's no GitHub Actions workflow running it with Postgres/Redis service containers yet.
+- **Auth.** There are no users; reviews are attributed to "reviewer". The schema already records a reviewer per event.
+- **OCR.** A scanned PDF with no text layer fails with "PDF contains no extractable text" instead of being processed.
+- **Original PDF viewer.** The review canvas shows the parsed text, which is what the evidence is validated against; a PDF view with highlighted regions would need text positions.
+- **Automatic retries for transient LLM errors.** The SDK retries twice; after that it's a visible failure plus a manual retry. A backoff policy for 429/5xx would be next.
+- **Vercel deploys run from the CLI** (`vercel build` + `deploy --prebuilt`), because the app root sits inside the monorepo. Connecting the GitHub repo would make pushes deploy.
+- **Undo/redo stacks live in the browser tab.** The history itself is server-side and complete; only "what can I redo" resets on reload.
+
+## At 10,000 documents
+
+- **Reads.** `GET /documents` loads every current value to compute progress. I'd add pagination and a denormalized progress row per version, updated in the same transaction as each review event. Review history reads are fine with the existing `(valueId, createdAt)` index.
+- **Reconciler.** It scans `ExtractionRun` by `(status, leaseUntil)`, which is already indexed. With several workers I'd make each sweep take a Postgres advisory lock so they don't redo each other's work.
+- **Throughput and cost.** Make worker concurrency per-provider with rate-limit-aware backoff, and use OpenRouter's batch endpoints (~50% cheaper) for non-urgent backfills. Track cost per run (already stored in the raw response) per day.
+- **Storage.** Parsed text stays in Postgres (it's small and it's what review reads), with a sweep for orphaned PDFs from failed transactions.
+- **Model quality.** Grow the eval set with real, messier documents before trusting a cheap default model. Track gap and rejection rates per model in production as the early warning.
+- **Multi-tenancy.** Add a tenant id on `Document`, row-level scoping in `services`, and per-tenant field definitions instead of the hard-coded three types.

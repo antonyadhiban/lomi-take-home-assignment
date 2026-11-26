@@ -183,15 +183,6 @@ importers:
         specifier: 5.1.2
         version: 5.1.2(@types/node@26.6.11)(vite@8.3.8(@types/node@26.6.11)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
-  e2e:
-    devDependencies:
-      '@playwright/test':
-        specifier: 1.65.1
-        version: 1.65.1
-      '@types/node':
-        specifier: 26.6.11
-        version: 26.6.11
-
   packages/core:
     devDependencies:
       '@lomi/eslint-config':
@@ -5172,6 +5163,7 @@ snapshots:
   '@playwright/test@1.65.1':
     dependencies:
       playwright: 1.65.1
+    optional: true
 
   '@prisma/adapter-pg@7.10.1':
     dependencies:
@@ -7675,11 +7667,13 @@ snapshots:
     dependencies:
       find-up: 3.0.0
 
-  playwright-core@1.65.1: {}
+  playwright-core@1.65.1:
+    optional: true
 
   playwright@1.65.1:
     dependencies:
       playwright-core: 1.65.1
+    optional: true
 
   postcss-selector-parser@7.2.1:
     dependencies:

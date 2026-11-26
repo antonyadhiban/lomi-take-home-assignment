@@ -73,7 +73,7 @@ export async function processRun(deps: Deps, runId: string): Promise<ProcessOutc
     const { version } = run;
     const docType = version.document.type;
     if (!isDocumentType(docType)) throw new Error(`unknown document type ${docType}`);
-    if (!deps.provider) throw new Error("no extraction provider configured");
+    if (!deps.provider) throw new Error("no LLM configured: set OPENROUTER_API_KEY for the worker, then retry");
 
     // Parse once per version and store it: evidence checks and the review UI
     // for version N always use version N's text, even after N+1 exists.
