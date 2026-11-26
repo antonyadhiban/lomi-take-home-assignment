@@ -1,6 +1,7 @@
 export * from "./types.js";
 export * from "./prompt.js";
 export * from "./openrouter.js";
+export * from "./fake.js";
 
 export async function parsePdfText(bytes: Uint8Array): Promise<string> {
   const { extractText, getDocumentProxy } = await import("unpdf");

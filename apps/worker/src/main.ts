@@ -1,5 +1,5 @@
 import { createPrisma } from "@lomi/db";
-import { createOpenRouterProvider } from "@lomi/extraction";
+import { createFakeProvider, createOpenRouterProvider } from "@lomi/extraction";
 import { createExtractionQueue, createRedis, EXTRACTION_QUEUE, type ExtractionJob } from "@lomi/queue";
 import { processRun, reconcile, type Deps } from "@lomi/services";
 import { createStorage } from "@lomi/storage";
@@ -16,7 +16,13 @@ const deps: Deps = {
   queue: createExtractionQueue(queueConn),
   // Without a key the worker still runs: each run fails visibly ("set
   // OPENROUTER_API_KEY") and stays retryable, instead of a crash loop.
-  provider: process.env.OPENROUTER_API_KEY ? createOpenRouterProvider() : undefined,
+  // EXTRACTION_PROVIDER=fake: deterministic fixture reader for e2e tests and offline demos.
+  provider:
+    process.env.EXTRACTION_PROVIDER === "fake"
+      ? createFakeProvider()
+      : process.env.OPENROUTER_API_KEY
+        ? createOpenRouterProvider()
+        : undefined,
   log: console,
 };
 

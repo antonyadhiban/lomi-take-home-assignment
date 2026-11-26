@@ -12,7 +12,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "db:migrate": "pnpm --filter @lomi/db migrate:deploy",
-    "eval:models": "pnpm --filter @lomi/extraction eval"
+    "eval:models": "pnpm --filter @lomi/extraction eval",
+    "test:e2e": "turbo run test:e2e"
   },
   "devDependencies": {
     "turbo": "2.11.13",

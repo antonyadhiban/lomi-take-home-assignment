@@ -184,7 +184,14 @@ function DocumentPage({ id }: { id: string }) {
   const pin = useCallback((vid: string | null) => {
     setPinnedId(vid);
     setCorrecting(false);
+    setCardHovered(false);
   }, []);
+
+  // If the card unmounts under the pointer (e.g. a new version replaced its field), no pointerleave
+  // fires; without this the card would stay "frozen" on a field that no longer exists.
+  useEffect(() => {
+    if (cardHovered && !cardValue) setCardHovered(false);
+  }, [cardHovered, cardValue]);
 
   const act = useCallback(
     (v: Value, input: ReviewInput) => {

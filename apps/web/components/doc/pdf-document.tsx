@@ -121,7 +121,31 @@ function locateBoxes(pages: PageModel[], values: Value[]): Box[] {
       break; // first page with a match wins
     }
   }
-  return boxes;
+  return mergeLines(boxes);
+}
+
+/** pdf.js often splits one line into several items ("Total Due:" + "$6,126.45"): one box per line per field. */
+function mergeLines(boxes: Box[]): Box[] {
+  const out: Box[] = [];
+  for (const b of boxes) {
+    const same = out.find(
+      (o) =>
+        o.valueId === b.valueId &&
+        o.page === b.page &&
+        Math.min(o.top + o.height, b.top + b.height) - Math.max(o.top, b.top) > Math.min(o.height, b.height) * 0.5,
+    );
+    if (!same) {
+      out.push({ ...b });
+      continue;
+    }
+    const left = Math.min(same.left, b.left);
+    const top = Math.min(same.top, b.top);
+    same.width = Math.max(same.left + same.width, b.left + b.width) - left;
+    same.height = Math.max(same.top + same.height, b.top + b.height) - top;
+    same.left = left;
+    same.top = top;
+  }
+  return out;
 }
 
 /**

@@ -13,3 +13,5 @@ test-results
 .vercel
 .DS_Store
 apps/web/public/pdf.worker.min.mjs
+e2e/test-results
+e2e/playwright-report
