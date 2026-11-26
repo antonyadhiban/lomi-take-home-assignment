@@ -52,7 +52,7 @@ export interface OpenRouterOptions {
 export function createOpenRouterProvider(opts: OpenRouterOptions = {}): ExtractionProvider {
   const apiKey = opts.apiKey ?? process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set");
-  const model = opts.model ?? process.env.EXTRACTION_MODEL ?? "anthropic/claude-sonnet-5.5";
+  const model = opts.model ?? process.env.EXTRACTION_MODEL ?? "openai/gpt-6-luna";
   const client = new OpenAI({
     apiKey,
     baseURL: "https://openrouter.ai/api/v1",
