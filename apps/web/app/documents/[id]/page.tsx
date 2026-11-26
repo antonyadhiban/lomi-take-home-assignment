@@ -75,9 +75,8 @@ export default function DocumentPage() {
   }, [values, selectedId]);
 
   const focusedId = hoverId ?? selectedId;
-  const focused = values.find((v) => v.id === focusedId) ?? null;
   const selected = values.find((v) => v.id === selectedId) ?? null;
-  const busy = review.isPending && review.variables?.valueId === focused?.id;
+  const busy = review.isPending && review.variables?.valueId === selected?.id;
 
   const act = useCallback(
     (v: Value, input: ReviewInput, keepRedo = false) => {
@@ -238,7 +237,7 @@ export default function DocumentPage() {
             </div>
           )}
           <p className="mx-auto mt-3 max-w-[760px] text-xs text-muted-foreground">
-            Hover a highlighted passage to inspect its value · click to pin · <kbd>J</kbd>/<kbd>K</kbd> to move · drop a PDF to upload v
+            Hover a passage or field to highlight it · click to review it below · <kbd>J</kbd>/<kbd>K</kbd> to move · drop a PDF to upload v
             {d.versions.length + 1}
           </p>
         </section>
@@ -270,28 +269,9 @@ export default function DocumentPage() {
                 </div>
               </div>
 
+              {/* Stable zone: the list never moves when you hover; hover only highlights here and in the document. */}
               <div className="min-h-0 flex-1 overflow-y-auto">
-                {focused && (
-                  <div className="border-b px-4 py-5">
-                    <FieldDetail
-                      key={focused.id}
-                      value={focused}
-                      readOnly={readOnly}
-                      busy={busy}
-                      redoCount={redo.current.get(focused.id)?.length ?? 0}
-                      onReview={(input) => act(focused, input)}
-                      onUndo={() => undo(focused)}
-                      onRedo={() => redoLast(focused)}
-                      correcting={correcting && focused.id === selectedId}
-                      setCorrecting={(b) => {
-                        setSelectedId(focused.id);
-                        setHoverId(null);
-                        setCorrecting(b);
-                      }}
-                    />
-                  </div>
-                )}
-                <p className="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">All fields</p>
+                <p className="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">Fields</p>
                 <FieldList
                   values={values}
                   focusedId={focusedId}
@@ -303,6 +283,30 @@ export default function DocumentPage() {
                   }}
                 />
               </div>
+
+              {/* Docked review panel: follows the selected field only (click, J/K), never hover. */}
+              {selected && (
+                <div
+                  className="max-h-[62%] shrink-0 overflow-y-auto border-t bg-card px-4 pt-4 pb-5 shadow-[0_-12px_24px_-16px_rgb(0_0_0/0.25)]"
+                  aria-label={`Review ${selected.field}`}
+                >
+                  <FieldDetail
+                    key={selected.id}
+                    value={selected}
+                    readOnly={readOnly}
+                    busy={busy}
+                    redoCount={redo.current.get(selected.id)?.length ?? 0}
+                    onReview={(input) => act(selected, input)}
+                    onUndo={() => undo(selected)}
+                    onRedo={() => redoLast(selected)}
+                    correcting={correcting}
+                    setCorrecting={(b) => {
+                      setHoverId(null);
+                      setCorrecting(b);
+                    }}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <div className="space-y-3 p-4">
