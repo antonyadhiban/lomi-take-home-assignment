@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Upload } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/app-shell";
+import { PipelineChart } from "@/components/app/pipeline-chart";
 import { ProgressBar } from "@/components/app/progress";
 import { VersionStatusChip } from "@/components/app/status";
 import { useUpload } from "@/components/app/upload-provider";
@@ -28,6 +29,7 @@ export default function DocumentsPage() {
 
   const totalPending = docs.data?.reduce((n, d) => n + d.progress.pending, 0) ?? 0;
   const inFlight = docs.data?.filter((d) => isInFlight(d.status)).length ?? 0;
+  const failed = docs.data?.filter((d) => d.status === "failed").length ?? 0;
 
   return (
     <>
@@ -40,11 +42,39 @@ export default function DocumentsPage() {
       </PageHeader>
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <div className="mb-8 grid gap-px border bg-border sm:grid-cols-3">
-          <Stat label="Waiting for review" value={docs.data ? totalPending : undefined} emphasis={totalPending > 0} />
-          <Stat label="Documents" value={docs.data?.length} />
-          <Stat label="Extracting now" value={docs.data ? inFlight : undefined} />
-        </div>
+        <section className="mb-8 border bg-background">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 pt-4 pb-3">
+            <h2 className="font-serif text-xl">Review pipeline</h2>
+            <p className="text-xs text-muted-foreground">
+              {docs.data ? (
+                <>
+                  <span className="text-foreground tabular-nums">{totalPending}</span> value{totalPending === 1 ? "" : "s"} waiting for review
+                </>
+              ) : (
+                <Skeleton className="inline-block h-3 w-32" />
+              )}
+            </p>
+          </div>
+          {docs.data ? (
+            <PipelineChart
+              stages={[
+                { label: "Uploaded", value: docs.data.length },
+                {
+                  label: "Extracted",
+                  value: docs.data.filter((d) => d.latestExtractedVersion != null).length,
+                  detail: [inFlight && `${inFlight} extracting`, failed && `${failed} failed`].filter(Boolean).join(", ") || undefined,
+                },
+                {
+                  label: "Fully reviewed",
+                  value: docs.data.filter((d) => d.status === "extracted" && d.progress.total > 0 && d.progress.pending === 0).length,
+                  detail: `${totalPending} values to go`,
+                },
+              ]}
+            />
+          ) : (
+            <Skeleton className="mx-4 mb-4 h-48" />
+          )}
+        </section>
 
         <div className="border">
           <div className="hidden grid-cols-[minmax(0,2.4fr)_1fr_0.6fr_1fr_1.6fr_24px] gap-4 border-b px-4 py-2.5 text-xs text-muted-foreground md:grid">
@@ -129,17 +159,4 @@ export default function DocumentsPage() {
       </div>
     </>
   );
-
-  function Stat({ label, value, emphasis }: { label: string; value?: number; emphasis?: boolean }) {
-    return (
-      <div className="bg-background px-5 py-4">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {value === undefined ? (
-          <Skeleton className="mt-2 h-8 w-12" />
-        ) : (
-          <p className={`mt-1 font-serif text-3xl ${emphasis ? "text-foreground" : "text-muted-foreground"}`}>{value}</p>
-        )}
-      </div>
-    );
-  }
 }

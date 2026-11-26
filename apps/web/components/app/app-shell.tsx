@@ -1,11 +1,10 @@
 "use client";
 
-import { Files, Moon, Sun, Upload } from "lucide-react";
+import { Files, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import type { ReactNode } from "react";
-import { useUpload } from "@/components/app/upload-provider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,6 @@ function RailButton({ label, children, onClick, href, active }: { label: string;
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
-  const { openNewDocument } = useUpload();
 
   return (
     <div className="flex min-h-svh">
@@ -46,9 +44,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         <RailButton label="Documents" href="/" active={pathname === "/" || pathname.startsWith("/documents")}>
           <Files className="size-[18px]" />
-        </RailButton>
-        <RailButton label="Upload document" onClick={() => openNewDocument()}>
-          <Upload className="size-[18px]" />
         </RailButton>
         <div className="flex-1" />
         <RailButton label="Toggle theme" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>

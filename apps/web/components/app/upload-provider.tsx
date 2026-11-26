@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { FilePlus2, FileStack } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -30,9 +30,31 @@ export interface VersionTarget {
   nextVersion: number;
 }
 
+/** A new document whose upload is still in flight (lives only in this tab until the API answers). */
+export interface PendingUpload {
+  id: string; // "pending-…"
+  file: File;
+  type: string;
+  title: string;
+  status: "uploading" | "failed";
+  error?: string;
+}
+
+/** A new version of an existing document whose upload is in flight. */
+export interface VersionUpload {
+  file: File;
+  version: number;
+  status: "uploading" | "failed";
+  error?: string;
+}
+
 interface UploadContextValue {
   openNewDocument: (file?: File) => void;
+  startUpload: (input: { file: File; type: string; title: string }) => void;
+  retryPending: (id: string) => void;
+  pending: Record<string, PendingUpload>;
   uploadNewVersion: (target: VersionTarget, file: File) => void;
+  versionUploads: Record<string, VersionUpload>;
   setVersionTarget: (t: VersionTarget | null) => void;
 }
 
@@ -68,32 +90,91 @@ export function UploadProvider({ children }: { children: ReactNode }) {
   const [dialog, setDialog] = useState<{ open: boolean; file?: File }>({ open: false });
   const [versionTarget, setVersionTarget] = useState<VersionTarget | null>(null);
   const [pendingDrop, setPendingDrop] = useState<{ file: File; target: VersionTarget } | null>(null);
+  const [pending, setPending] = useState<Record<string, PendingUpload>>({});
+  const [versionUploads, setVersionUploads] = useState<Record<string, VersionUpload>>({});
 
-  const versionMutation = useMutation({
-    mutationFn: ({ target, file }: { target: VersionTarget; file: File }) => api.uploadVersion(target.documentId, file),
-  });
+  const runUpload = useCallback(
+    async (p: PendingUpload) => {
+      setPending((m) => ({ ...m, [p.id]: { ...p, status: "uploading", error: undefined } }));
+      try {
+        const doc = await api.upload({ file: p.file, type: p.type, title: p.title });
+        qc.setQueryData(["document", doc.id, null], doc);
+        qc.invalidateQueries({ queryKey: ["documents"] });
+        // swap the placeholder page for the real document without a history entry
+        router.replace(`/documents/${doc.id}`);
+        setPending(({ [p.id]: _done, ...rest }) => rest);
+      } catch (e) {
+        setPending((m) => ({ ...m, [p.id]: { ...p, status: "failed", error: (e as Error).message } }));
+      }
+    },
+    [qc, router],
+  );
+
+  // Navigate first, upload second: the document page shows the "Uploading" stage right away.
+  const startUpload = useCallback(
+    (input: { file: File; type: string; title: string }) => {
+      const p: PendingUpload = { id: `pending-${crypto.randomUUID()}`, status: "uploading", ...input };
+      setPending((m) => ({ ...m, [p.id]: p }));
+      router.push(`/documents/${p.id}`);
+      void runUpload(p);
+    },
+    [router, runUpload],
+  );
+
+  const retryPending = useCallback(
+    (id: string) => {
+      const p = pending[id];
+      if (p) void runUpload(p);
+    },
+    [pending, runUpload],
+  );
 
   const uploadNewVersion = useCallback(
-    (target: VersionTarget, file: File) => {
-      const promise = versionMutation.mutateAsync({ target, file }).then((res) => {
+    async (target: VersionTarget, file: File) => {
+      setVersionUploads((m) => ({ ...m, [target.documentId]: { file, version: target.nextVersion, status: "uploading" } }));
+      try {
+        const res = await api.uploadVersion(target.documentId, file);
         qc.setQueryData(["document", target.documentId, null], res);
         qc.invalidateQueries({ queryKey: ["document", target.documentId] });
         qc.invalidateQueries({ queryKey: ["documents"] });
-        return res;
-      });
-      toast.promise(promise, {
-        loading: `Uploading ${file.name} as v${target.nextVersion}…`,
-        success: (res) =>
-          res.duplicate
-            ? `Identical to v${res.currentVersion}. Nothing to re-extract.`
-            : `v${res.currentVersion} uploaded. Extracting, unchanged reviews will carry over.`,
-        error: (e: Error) => e.message,
-      });
+        if (res.duplicate) toast(`Identical to v${res.currentVersion}. Nothing to re-extract.`);
+        setVersionUploads(({ [target.documentId]: _done, ...rest }) => rest);
+      } catch (e) {
+        setVersionUploads((m) => ({
+          ...m,
+          [target.documentId]: { file, version: target.nextVersion, status: "failed", error: (e as Error).message },
+        }));
+        toast.error((e as Error).message);
+      }
     },
-    [qc, versionMutation],
+    [qc],
   );
 
   const openNewDocument = useCallback((file?: File) => setDialog({ open: true, file }), []);
+
+  // The dropzone's own drag counter can get stuck (drag cancelled outside the window, odd targets).
+  // Track a drag in progress ourselves: on at dragenter with files; off at drop/dragend/leaving the
+  // window, or any pointer move (pointer events don't fire during a real drag).
+  const [dragging, setDragging] = useState(false);
+  useEffect(() => {
+    const on = (e: DragEvent) => e.dataTransfer?.types.includes("Files") && setDragging(true);
+    const off = () => setDragging(false);
+    const leave = (e: DragEvent) => e.relatedTarget == null && setDragging(false);
+    window.addEventListener("dragenter", on, true);
+    window.addEventListener("dragleave", leave, true);
+    window.addEventListener("drop", off, true);
+    window.addEventListener("dragend", off, true);
+    window.addEventListener("pointermove", off, true);
+    window.addEventListener("pointerdown", off, true);
+    return () => {
+      window.removeEventListener("dragenter", on, true);
+      window.removeEventListener("dragleave", leave, true);
+      window.removeEventListener("drop", off, true);
+      window.removeEventListener("dragend", off, true);
+      window.removeEventListener("pointermove", off, true);
+      window.removeEventListener("pointerdown", off, true);
+    };
+  }, []);
 
   // App-wide drop zone (Midday-style full-cover overlay while dragging).
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -103,8 +184,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
     multiple: false,
     noClick: true,
     noKeyboard: true,
-    // the upload dialog has its own drop area; don't double-handle drops into it
-    disabled: dialog.open,
+    disabled: dialog.open, // the dialog has its own drop area
     onDropAccepted: ([file]) => {
       if (!file) return;
       if (versionTarget) setPendingDrop({ file, target: versionTarget });
@@ -114,8 +194,8 @@ export function UploadProvider({ children }: { children: ReactNode }) {
   });
 
   const value = useMemo(
-    () => ({ openNewDocument, uploadNewVersion, setVersionTarget }),
-    [openNewDocument, uploadNewVersion],
+    () => ({ openNewDocument, startUpload, retryPending, pending, uploadNewVersion, versionUploads, setVersionTarget }),
+    [openNewDocument, startUpload, retryPending, pending, uploadNewVersion, versionUploads],
   );
 
   return (
@@ -123,13 +203,11 @@ export function UploadProvider({ children }: { children: ReactNode }) {
       <div {...getRootProps({ className: "relative min-h-svh outline-none" })}>
         <input {...getInputProps()} />
         {children}
-        {isDragActive && (
+        {isDragActive && dragging && !pendingDrop && (
           <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-[2px] animate-in fade-in-0">
             <div className="flex w-[min(28rem,90vw)] flex-col items-center gap-3 border border-dashed border-foreground/30 bg-card px-8 py-10 text-center">
               {versionTarget ? <FileStack className="size-6 text-muted-foreground" /> : <FilePlus2 className="size-6 text-muted-foreground" />}
-              <p className="font-serif text-xl">
-                {versionTarget ? `New version of ${versionTarget.title}` : "Start a new document"}
-              </p>
+              <p className="font-serif text-xl">{versionTarget ? `New version of ${versionTarget.title}` : "Start a new document"}</p>
               <p className="text-xs text-muted-foreground">
                 {versionTarget
                   ? `Drop the revised PDF to upload it as v${versionTarget.nextVersion}. Reviews whose evidence is unchanged carry over.`
@@ -144,10 +222,9 @@ export function UploadProvider({ children }: { children: ReactNode }) {
         open={dialog.open}
         initialFile={dialog.file}
         onOpenChange={(open) => setDialog((d) => ({ ...d, open }))}
-        onUploaded={(doc) => {
-          qc.setQueryData(["document", doc.id, null], doc);
-          qc.invalidateQueries({ queryKey: ["documents"] });
-          router.push(`/documents/${doc.id}`);
+        onSubmit={(input) => {
+          setDialog({ open: false });
+          startUpload(input);
         }}
       />
 

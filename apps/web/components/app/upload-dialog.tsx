@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { FileText, UploadCloud, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useDropzone } from "react-dropzone";
@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { typeLabel } from "@/lib/format";
-import type { DocumentDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const prettySize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
@@ -31,12 +30,13 @@ export function UploadDialog({
   open,
   initialFile,
   onOpenChange,
-  onUploaded,
+  onSubmit,
 }: {
   open: boolean;
   initialFile?: File;
   onOpenChange: (open: boolean) => void;
-  onUploaded: (doc: DocumentDetail) => void;
+  /** closes the dialog and opens the document page immediately; the upload continues there */
+  onSubmit: (input: { file: File; type: string; title: string }) => void;
 }) {
   const types = useQuery({ queryKey: ["types"], queryFn: api.documentTypes, staleTime: Infinity });
   const typeList = types.data ?? ["invoice", "lease", "market_report"];
@@ -68,24 +68,10 @@ export function UploadDialog({
     onDropRejected: (r) => toast.error(rejectionMessage(r)),
   });
 
-  const upload = useMutation({ mutationFn: api.upload });
-
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!file) return;
-    const promise = upload.mutateAsync({ type, title: title.trim() || file.name.replace(/\.pdf$/i, ""), file });
-    toast.promise(promise, {
-      loading: `Uploading ${file.name}…`,
-      success: "Uploaded. Extraction has started.",
-      error: (err: Error) => err.message,
-    });
-    try {
-      const doc = await promise;
-      onOpenChange(false);
-      onUploaded(doc);
-    } catch {
-      /* toast shows the error; keep the dialog open */
-    }
+    onSubmit({ file, type, title: title.trim() || file.name.replace(/\.pdf$/i, "") });
   };
 
   return (
@@ -143,7 +129,7 @@ export function UploadDialog({
                 <SelectTrigger id="doc-type" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper">
                   {typeList.map((t) => (
                     <SelectItem key={t} value={t}>
                       {typeLabel(t)}
@@ -162,8 +148,8 @@ export function UploadDialog({
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!file || upload.isPending}>
-              {upload.isPending ? "Uploading…" : "Upload and extract"}
+            <Button type="submit" disabled={!file}>
+              Upload and extract
             </Button>
           </DialogFooter>
         </form>

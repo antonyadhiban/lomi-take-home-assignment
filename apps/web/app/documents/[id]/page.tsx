@@ -1,20 +1,20 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { AlertTriangle, ChevronRight, FileStack, Loader2, RotateCw } from "lucide-react";
+import { ChevronRight, Loader2, MousePointerClick } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/app/app-shell";
-import { ProgressBar } from "@/components/app/progress";
 import { VersionStatusChip } from "@/components/app/status";
 import { useUpload, useVersionDropTarget } from "@/components/app/upload-provider";
-import { FieldDetail } from "@/components/doc/field-detail";
 import { FieldList } from "@/components/doc/field-list";
+import { PipelineStages, type StageState } from "@/components/doc/pipeline-stages";
+import { ReviewCard } from "@/components/doc/review-card";
 import { SourceDocument } from "@/components/doc/source-document";
+import { VersionMenu } from "@/components/doc/version-menu";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isOptimistic, useReview } from "@/hooks/use-review";
 import { api, isInFlight } from "@/lib/api";
@@ -24,27 +24,117 @@ import type { DocumentDetail, ReviewInput, Value } from "@/lib/types";
 /** Needs-attention first: changed values, other pending, gaps; then everything reviewed. */
 const rank = (v: Value) => (v.status === "pending" ? (v.needsReReview ? 0 : v.isGap ? 2 : 1) : 3);
 
-export default function DocumentPage() {
+export default function DocumentRoute() {
   const { id } = useParams<{ id: string }>();
+  return id.startsWith("pending-") ? <PendingUploadPage id={id} /> : <DocumentPage id={id} />;
+}
+
+/** Shell shared by the live document and the "still uploading" placeholder: canvas left, review sidebar right. */
+function Layout({
+  title,
+  type,
+  headerRight,
+  stages,
+  canvas,
+  sidebar,
+}: {
+  title: string;
+  type?: string;
+  headerRight?: ReactNode;
+  stages: ReactNode;
+  canvas: ReactNode;
+  sidebar?: ReactNode;
+}) {
+  return (
+    <div className="flex h-svh flex-col">
+      <PageHeader>
+        <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+          <Link href="/" className="text-muted-foreground hover:text-foreground">Documents</Link>
+          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate font-medium">{title}</span>
+        </nav>
+        {type && <span className="hidden text-xs text-muted-foreground sm:inline">{typeLabel(type)}</span>}
+        <div className="flex-1" />
+        {headerRight}
+      </PageHeader>
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="relative min-h-0 flex-1">{canvas}</div>
+        <aside className="flex max-h-[45vh] w-full shrink-0 flex-col border-t bg-background lg:max-h-none lg:w-[360px] lg:border-t-0 lg:border-l" aria-label="Review">
+          {stages}
+          <div className="min-h-0 flex-1 overflow-y-auto">{sidebar}</div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function PaperPlaceholder({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="h-full overflow-y-auto bg-card/60 px-4 py-8 sm:px-8">
+      <div className="mx-auto flex max-w-[760px] flex-col items-center gap-3 border bg-paper px-6 py-24 text-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        <p className="font-serif text-xl">{title}</p>
+        <div className="max-w-sm text-sm text-muted-foreground">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function PendingUploadPage({ id }: { id: string }) {
+  const { pending, retryPending } = useUpload();
+  const p = pending[id];
+  if (!p) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
+        <p className="font-serif text-xl">This upload was interrupted</p>
+        <p className="text-sm text-muted-foreground">The page was reloaded before the PDF finished uploading.</p>
+        <Button asChild variant="outline" size="sm"><Link href="/">Back to documents</Link></Button>
+      </div>
+    );
+  }
+  return (
+    <Layout
+      title={p.title}
+      type={p.type}
+      stages={
+        <PipelineStages
+          upload={p.status === "failed" ? "failed" : "active"}
+          extract="waiting"
+          review={null}
+          version={1}
+          error={p.error}
+          onRetry={() => retryPending(id)}
+        />
+      }
+      canvas={<PaperPlaceholder title={`Uploading ${p.file.name}…`}>Extraction starts as soon as the PDF is stored.</PaperPlaceholder>}
+      sidebar={<SidebarSkeleton />}
+    />
+  );
+}
+
+function DocumentPage({ id }: { id: string }) {
   const qc = useQueryClient();
-  const { uploadNewVersion } = useUpload();
+  const { uploadNewVersion, versionUploads } = useUpload();
   const fileRef = useRef<HTMLInputElement>(null);
   const [viewVersion, setViewVersion] = useState<number | null>(null); // null = current
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
+  const [cardHovered, setCardHovered] = useState(false);
   const [correcting, setCorrecting] = useState(false);
+  const lastShown = useRef<string | null>(null);
   const redo = useRef(new Map<string, string[]>()); // valueId -> undone event ids
   const [, bump] = useState(0);
 
   const doc = useQuery({
     queryKey: ["document", id, viewVersion],
     queryFn: () => api.getDocument(id, viewVersion ?? undefined),
-    placeholderData: (prev) => prev, // keep showing the last version while switching
+    placeholderData: (prev) => prev,
     refetchInterval: (q) => (isInFlight(q.state.data?.status) ? 2000 : false),
   });
   const d = doc.data;
+  const versionUpload = versionUploads[id];
 
-  // While the current version is still extracting, show the latest extracted one underneath.
+  // While the current version is extracting, keep the latest extracted one on the canvas (read-only).
   const fallbackVersion =
     d && viewVersion == null && d.version.isCurrent && d.version.status !== "extracted"
       ? [...d.versions].reverse().find((x) => x.status === "extracted")?.version
@@ -54,38 +144,42 @@ export default function DocumentPage() {
     queryFn: () => api.getDocument(id, fallbackVersion),
     enabled: fallbackVersion != null,
   });
-  const shown = fallbackVersion != null ? fallback.data : d;
+  const shown: DocumentDetail | undefined = fallbackVersion != null ? fallback.data : d;
 
-  const review = useReview(id, fallbackVersion != null ? fallbackVersion : viewVersion);
+  const review = useReview(id, viewVersion);
   const retry = useMutation({
     mutationFn: () => api.retry(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["document", id] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
-  useVersionDropTarget(d ? { documentId: id, title: d.title, nextVersion: d.versions.length + 1 } : null);
+  const nextVersion = (d?.versions.length ?? 0) + 1;
+  useVersionDropTarget(d ? { documentId: id, title: d.title, nextVersion } : null);
 
   const values = useMemo(() => (shown ? [...shown.values].sort((a, b) => rank(a) - rank(b)) : []), [shown]);
   const readOnly = !shown || !shown.version.isCurrent || shown.version.status !== "extracted";
 
-  // default selection: the first thing that needs attention
-  useEffect(() => {
-    if (!values.length) return;
-    if (!selectedId || !values.some((v) => v.id === selectedId)) setSelectedId(values[0]!.id);
-  }, [values, selectedId]);
+  // What the floating card shows: a hover preview, else the pinned field. While correcting it stays
+  // on the pinned field; while the pointer is inside the card it freezes, so its buttons are reachable.
+  const shownId = correcting ? pinnedId : cardHovered ? lastShown.current : (hoverId ?? pinnedId);
+  lastShown.current = shownId;
+  const cardValue = values.find((v) => v.id === shownId) ?? null;
+  const highlightId = hoverId ?? pinnedId;
+  const busy = review.isPending && review.variables?.valueId === cardValue?.id;
 
-  const focusedId = hoverId ?? selectedId;
-  const selected = values.find((v) => v.id === selectedId) ?? null;
-  const busy = review.isPending && review.variables?.valueId === selected?.id;
+  const pin = useCallback((vid: string | null) => {
+    setPinnedId(vid);
+    setCorrecting(false);
+  }, []);
 
   const act = useCallback(
     (v: Value, input: ReviewInput, keepRedo = false) => {
       if (!keepRedo) redo.current.delete(v.id);
+      setPinnedId(v.id);
       review.mutate({ valueId: v.id, input, expectedLatestEventId: v.latestEventId });
     },
     [review],
   );
-
   // Undo = re-apply the state before the latest event; redo = re-apply what was undone. Both append events.
   const undo = useCallback(
     (v: Value) => {
@@ -110,292 +204,222 @@ export default function DocumentPage() {
     [act],
   );
 
-  // Keyboard: J/K or arrows move between fields, A approves, C corrects, U undoes, Shift+U redoes.
+  // Keyboard: J/K or arrows step through fields, A approves, C corrects, U / Shift+U undo/redo, Esc closes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (t.closest("input, textarea, select, [contenteditable], [role=dialog], [role=listbox]") || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "Escape" && !t.closest("[role=dialog], [role=menu]")) {
+        pin(null);
+        return;
+      }
+      if (t.closest("input, textarea, select, [contenteditable], [role=dialog], [role=menu]") || e.metaKey || e.ctrlKey || e.altKey) return;
       if (!values.length) return;
-      const idx = Math.max(0, values.findIndex((v) => v.id === selectedId));
+      const idx = values.findIndex((v) => v.id === pinnedId);
       const k = e.key.toLowerCase();
+      const current = values.find((v) => v.id === pinnedId);
       if (k === "j" || e.key === "ArrowDown") {
         e.preventDefault();
-        setHoverId(null);
-        setSelectedId(values[Math.min(values.length - 1, idx + 1)]!.id);
+        pin(values[idx < 0 ? 0 : Math.min(values.length - 1, idx + 1)]!.id);
       } else if (k === "k" || e.key === "ArrowUp") {
         e.preventDefault();
-        setHoverId(null);
-        setSelectedId(values[Math.max(0, idx - 1)]!.id);
-      } else if (!readOnly && selected) {
-        if (k === "a" && displayStatus(selected) !== "approved") act(selected, { action: "approve" });
+        pin(values[idx < 0 ? 0 : Math.max(0, idx - 1)]!.id);
+      } else if (!readOnly && current) {
+        if (k === "a" && displayStatus(current) !== "approved") act(current, { action: "approve" });
         else if (k === "c") {
           e.preventDefault();
-          setHoverId(null);
           setCorrecting(true);
-        } else if (k === "u") (e.shiftKey ? redoLast : undo)(selected);
+        } else if (k === "u") (e.shiftKey ? redoLast : undo)(current);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [values, selectedId, selected, readOnly, act, undo, redoLast]);
+  }, [values, pinnedId, readOnly, act, undo, redoLast, pin]);
 
-  if (doc.isLoading) return <DocumentSkeleton />;
+  if (doc.isLoading) {
+    return <Layout title="" stages={<PipelineStages upload="done" extract="waiting" review={null} version={null} />} canvas={<CanvasSkeleton />} sidebar={<SidebarSkeleton />} />;
+  }
   if (doc.error || !d) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
         <p className="font-serif text-xl">Couldn&apos;t load this document</p>
         <p className="text-sm text-muted-foreground">{doc.error?.message}</p>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/">Back to documents</Link>
-        </Button>
+        <Button asChild variant="outline" size="sm"><Link href="/">Back to documents</Link></Button>
       </div>
     );
   }
 
   const v = d.version;
-  const pending = shown?.values.filter((x) => x.status === "pending") ?? [];
-  const changed = pending.filter((x) => x.needsReReview).length;
+  // stages describe the version being processed: an in-flight new upload, else the version being viewed
+  const upload: StageState = versionUpload ? (versionUpload.status === "failed" ? "failed" : "active") : "done";
+  const extract: StageState = versionUpload
+    ? "waiting"
+    : v.status === "extracted"
+      ? "done"
+      : v.status === "failed"
+        ? "failed"
+        : v.status === "superseded"
+          ? "waiting"
+          : "active";
+  const showReview = !versionUpload && v.status === "extracted" && shown;
+  const changed = shown?.values.filter((x) => x.status === "pending" && x.needsReReview).length ?? 0;
+
+  const statusNode =
+    !versionUpload && !v.isCurrent ? (
+      <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
+        <span className="truncate">
+          Viewing v{v.version}{v.status === "superseded" ? " (superseded before extraction finished)" : ""}, read-only
+        </span>
+        <button type="button" className="shrink-0 text-foreground underline underline-offset-2" onClick={() => setViewVersion(null)}>
+          Back to v{d.currentVersion}
+        </button>
+      </span>
+    ) : !versionUpload && fallbackVersion != null && extract === "active" ? (
+      <span className="truncate text-muted-foreground">Extracting v{v.version}. Showing v{fallbackVersion} until it&apos;s ready</span>
+    ) : undefined;
+
+  const canvas = shown?.version.parsedText ? (
+    <>
+      <section
+        className="h-full overflow-y-auto bg-card/60 px-4 pt-8 pb-[45vh] sm:px-8"
+        aria-label="Source document"
+        onPointerDown={(e) => {
+          // clicking empty space (not a field, not the card) dismisses the review card
+          if (!(e.target as HTMLElement).closest(".evidence, [data-review-card]")) pin(null);
+        }}
+      >
+        <SourceDocument text={shown.version.parsedText} values={shown.values} focusedId={highlightId} onHover={setHoverId} onSelect={pin} />
+      </section>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
+        {cardValue ? (
+          <div
+            data-review-card
+            className="pointer-events-auto max-h-[42vh] w-full max-w-[680px] overflow-y-auto border bg-card/95 p-4 shadow-[0_24px_48px_-20px_rgb(0_0_0/0.35)] backdrop-blur animate-in fade-in-0 slide-in-from-bottom-1"
+            onPointerEnter={() => setCardHovered(true)}
+            onPointerLeave={() => setCardHovered(false)}
+            onPointerDown={() => pinnedId !== cardValue.id && pin(cardValue.id)}
+          >
+            <ReviewCard
+              key={cardValue.id}
+              value={cardValue}
+              pinned={pinnedId === cardValue.id}
+              readOnly={readOnly}
+              busy={busy}
+              redoCount={redo.current.get(cardValue.id)?.length ?? 0}
+              correcting={correcting && pinnedId === cardValue.id}
+              setCorrecting={(b) => {
+                setPinnedId(cardValue.id);
+                setCorrecting(b);
+              }}
+              onReview={(input) => act(cardValue, input)}
+              onUndo={() => undo(cardValue)}
+              onRedo={() => redoLast(cardValue)}
+              onClose={() => pin(null)}
+            />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 border bg-card/95 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur">
+            <MousePointerClick className="size-3.5" /> Hover a field to inspect it · click to review · <kbd>J</kbd>/<kbd>K</kbd> to step through
+          </div>
+        )}
+      </div>
+    </>
+  ) : (
+    <PaperPlaceholder title={versionUpload ? `Uploading v${versionUpload.version}…` : `Reading v${v.version}…`}>
+      Parsing the PDF and asking the model for each field. This page updates on its own.
+    </PaperPlaceholder>
+  );
 
   return (
-    <div className="flex h-svh flex-col">
-      <PageHeader>
-        <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-          <Link href="/" className="text-muted-foreground hover:text-foreground">
-            Documents
-          </Link>
-          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
-          <span className="truncate font-medium">{d.title}</span>
-        </nav>
-        <span className="hidden text-xs text-muted-foreground sm:inline">{typeLabel(d.type)}</span>
-        <div className="flex-1" />
-        <VersionStatusChip status={d.status} className="hidden sm:inline-flex" />
-        <Select value={String(viewVersion ?? d.currentVersion)} onValueChange={(x) => setViewVersion(Number(x) === d.currentVersion ? null : Number(x))}>
-          <SelectTrigger size="sm" className="w-auto gap-2 font-mono text-xs" aria-label="Version">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            {[...d.versions].reverse().map((x) => (
-              <SelectItem key={x.version} value={String(x.version)} className="font-mono text-xs">
-                v{x.version}
-                {x.version === d.currentVersion ? " · current" : ""}
-                {x.status !== "extracted" ? ` · ${x.status}` : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/pdf,.pdf"
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) {
-              setViewVersion(null);
-              uploadNewVersion({ documentId: id, title: d.title, nextVersion: d.versions.length + 1 }, f);
-            }
-            e.target.value = "";
-          }}
+    <Layout
+      title={d.title}
+      type={d.type}
+      headerRight={
+        <>
+          <VersionStatusChip status={d.status} className="hidden sm:inline-flex" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) {
+                setViewVersion(null);
+                uploadNewVersion({ documentId: id, title: d.title, nextVersion }, f);
+              }
+              e.target.value = "";
+            }}
+          />
+          <VersionMenu
+            versions={d.versions}
+            current={d.currentVersion}
+            viewing={viewVersion ?? d.currentVersion}
+            onView={(x) => {
+              pin(null);
+              setViewVersion(x === d.currentVersion ? null : x);
+            }}
+            onUploadNew={() => fileRef.current?.click()}
+          />
+        </>
+      }
+      stages={
+        <PipelineStages
+          upload={upload}
+          extract={extract}
+          version={versionUpload ? versionUpload.version : v.version}
+          review={
+            showReview
+              ? {
+                  progress: displayProgress(shown.values),
+                  changed,
+                  previousVersion: shown.version.version > 1 ? shown.version.version - 1 : null,
+                  readOnlyNote: readOnly ? "read-only" : undefined,
+                }
+              : null
+          }
+          error={versionUpload?.error ?? v.error}
+          onRetry={v.status === "failed" && v.isCurrent ? () => retry.mutate() : undefined}
+          retrying={retry.isPending}
+          statusNode={statusNode}
         />
-        <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
-          <FileStack /> <span className="hidden sm:inline">New version</span>
-        </Button>
-      </PageHeader>
+      }
+      canvas={canvas}
+      sidebar={
+        values.length ? (
+          <>
+            <p className="px-4 pt-3 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">Fields</p>
+            <FieldList values={values} focusedId={highlightId} selectedId={pinnedId} onHover={setHoverId} onSelect={pin} />
+          </>
+        ) : (
+          <SidebarSkeleton />
+        )
+      }
+    />
+  );
+}
 
-      <Banners
-        d={d}
-        viewingFallback={fallbackVersion}
-        onCurrent={() => setViewVersion(null)}
-        onRetry={() => retry.mutate()}
-        retrying={retry.isPending}
-      />
-
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <section className="min-h-0 flex-1 overflow-y-auto bg-card/60 px-4 py-8 sm:px-8" aria-label="Source document">
-          {shown?.version.parsedText ? (
-            <SourceDocument
-              text={shown.version.parsedText}
-              values={shown.values}
-              focusedId={focusedId}
-              onHover={setHoverId}
-              onSelect={(vid) => {
-                setSelectedId(vid);
-                setCorrecting(false);
-              }}
-            />
-          ) : isInFlight(v.status) ? (
-            <div className="mx-auto flex max-w-[760px] flex-col items-center gap-3 border bg-paper px-6 py-24 text-center">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-              <p className="font-serif text-xl">Reading v{v.version}…</p>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                Parsing the PDF and asking the model for each field. This page updates on its own.
-              </p>
-            </div>
-          ) : (
-            <div className="mx-auto max-w-[760px] border bg-paper px-6 py-24 text-center text-sm text-muted-foreground">
-              No text stored for this version.
-            </div>
-          )}
-          <p className="mx-auto mt-3 max-w-[760px] text-xs text-muted-foreground">
-            Hover a passage or field to highlight it · click to review it below · <kbd>J</kbd>/<kbd>K</kbd> to move · drop a PDF to upload v
-            {d.versions.length + 1}
-          </p>
-        </section>
-
-        <aside className="flex max-h-[55vh] w-full shrink-0 flex-col border-t bg-background lg:max-h-none lg:w-[400px] lg:border-t-0 lg:border-l" aria-label="Review">
-          {shown && shown.version.status === "extracted" ? (
-            <>
-              <div className="border-b px-4 py-3">
-                <p className="text-xs text-muted-foreground">
-                  {readOnly ? `v${shown.version.version} · read-only history` : "Review progress"}
-                </p>
-                <ProgressBar progress={displayProgress(shown.values)} className="mt-2" />
-              </div>
-
-              {/* Stable zone: the list never moves when you hover; hover only highlights here and in the document. */}
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background px-4 py-2.5">
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Fields</span>
-                  {readOnly ? null : pending.length ? (
-                    <>
-                      <span className="inline-flex h-5 min-w-5 items-center justify-center bg-foreground px-1.5 text-[11px] font-medium tabular-nums text-background">
-                        {pending.length}
-                      </span>
-                      <span className="text-xs">to review</span>
-                    </>
-                  ) : (
-                    <span className="text-xs text-approved">All reviewed</span>
-                  )}
-                  <span className="flex-1" />
-                  {!readOnly && changed > 0 && (
-                    <span className="text-[11px] text-pending">{changed} changed since v{shown.version.version - 1}</span>
-                  )}
-                  <span className="text-[11px] tabular-nums text-muted-foreground">{shown.values.length} total</span>
-                </div>
-                <FieldList
-                  values={values}
-                  focusedId={focusedId}
-                  selectedId={selectedId}
-                  onHover={setHoverId}
-                  onSelect={(vid) => {
-                    setSelectedId(vid);
-                    setCorrecting(false);
-                  }}
-                />
-              </div>
-
-              {/* Docked review panel: follows the selected field only (click, J/K), never hover. */}
-              {selected && (
-                <div
-                  className="max-h-[62%] shrink-0 overflow-y-auto border-t bg-card px-4 pt-4 pb-5 shadow-[0_-12px_24px_-16px_rgb(0_0_0/0.25)]"
-                  aria-label={`Review ${selected.field}`}
-                >
-                  <FieldDetail
-                    key={selected.id}
-                    value={selected}
-                    readOnly={readOnly}
-                    busy={busy}
-                    redoCount={redo.current.get(selected.id)?.length ?? 0}
-                    onReview={(input) => act(selected, input)}
-                    onUndo={() => undo(selected)}
-                    onRedo={() => redoLast(selected)}
-                    correcting={correcting}
-                    setCorrecting={(b) => {
-                      setHoverId(null);
-                      setCorrecting(b);
-                    }}
-                  />
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="space-y-3 p-4">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-1 w-full" />
-              <Skeleton className="mt-6 h-8 w-2/3" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          )}
-        </aside>
+function CanvasSkeleton() {
+  return (
+    <div className="h-full bg-card/60 p-8">
+      <div className="mx-auto max-w-[760px] space-y-3 border bg-paper p-12">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <Skeleton key={i} className="h-3" style={{ width: `${55 + ((i * 37) % 40)}%` }} />
+        ))}
       </div>
     </div>
   );
 }
 
-function Banners({
-  d,
-  viewingFallback,
-  onCurrent,
-  onRetry,
-  retrying,
-}: {
-  d: DocumentDetail;
-  viewingFallback?: number;
-  onCurrent: () => void;
-  onRetry: () => void;
-  retrying: boolean;
-}) {
-  const v = d.version;
-  const base = "flex flex-wrap items-center gap-3 border-b px-4 py-2.5 text-sm md:px-6";
-  if (!v.isCurrent)
-    return (
-      <div className={`${base} bg-accent`}>
-        <span>
-          Viewing <span className="font-mono">v{v.version}</span> ({v.status}). Read-only history: its own text, values and reviews.
-        </span>
-        <Button size="sm" variant="outline" onClick={onCurrent}>
-          Back to v{d.currentVersion}
-        </Button>
-      </div>
-    );
-  if (isInFlight(v.status))
-    return (
-      <div className={`${base} bg-accent`}>
-        <Loader2 className="size-4 animate-spin text-muted-foreground" />
-        <span>
-          Extracting <span className="font-mono">v{v.version}</span>…
-          {viewingFallback != null && (
-            <span className="text-muted-foreground"> Showing v{viewingFallback} until it&apos;s ready.</span>
-          )}
-        </span>
-      </div>
-    );
-  if (v.status === "failed")
-    return (
-      <div className={`${base} bg-gap/8 text-gap`}>
-        <AlertTriangle className="size-4" />
-        <span className="min-w-0 flex-1">
-          Extraction of <span className="font-mono">v{v.version}</span> failed{v.lastRun ? ` (attempt ${v.lastRun.attempt})` : ""}: {v.error}
-        </span>
-        <Button size="sm" variant="outline" onClick={onRetry} disabled={retrying}>
-          <RotateCw className={retrying ? "animate-spin" : ""} /> Retry
-        </Button>
-      </div>
-    );
-  return null;
-}
-
-function DocumentSkeleton() {
+function SidebarSkeleton() {
   return (
-    <div className="flex h-svh flex-col">
-      <div className="flex h-14 items-center gap-3 border-b px-6">
-        <Skeleton className="h-4 w-48" />
-      </div>
-      <div className="flex flex-1">
-        <div className="flex-1 bg-card/60 p-8">
-          <div className="mx-auto max-w-[760px] space-y-3 border bg-paper p-12">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="h-3" style={{ width: `${55 + ((i * 37) % 40)}%` }} />
-            ))}
-          </div>
+    <div className="space-y-4 p-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-4 w-40" />
         </div>
-        <div className="hidden w-[400px] space-y-3 border-l p-4 lg:block">
-          <Skeleton className="h-4 w-1/2" />
-          <Skeleton className="h-1 w-full" />
-          <Skeleton className="mt-6 h-8 w-2/3" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
