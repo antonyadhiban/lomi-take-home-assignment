@@ -39,7 +39,15 @@ async function readUpload(req: FastifyRequest) {
 export async function buildApp(deps: Deps): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? "info" } });
   const origins = (process.env.CORS_ORIGINS ?? "http://localhost:3000").split(",").map((s) => s.trim());
-  await app.register(cors, { origin: origins });
+  await app.register(cors, { origin: origins, exposedHeaders: ["Server-Timing"] });
+
+  // Server-side time per request, visible in the browser's network panel. From
+  // far-away reviewers, total latency is mostly network; this shows the split.
+  app.addHook("onSend", async (req, reply, payload) => {
+    reply.header("Server-Timing", `app;dur=${reply.elapsedTime.toFixed(1)}`);
+    reply.header("Timing-Allow-Origin", origins.join(" "));
+    return payload;
+  });
   await app.register(multipart, { limits: { fileSize: MAX_PDF_BYTES, files: 1 } });
 
   app.setErrorHandler((err, _req, reply) => {
