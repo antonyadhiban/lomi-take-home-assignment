@@ -152,20 +152,21 @@ export function UploadProvider({ children }: { children: ReactNode }) {
       />
 
       <AlertDialog open={!!pendingDrop} onOpenChange={(o) => !o && setPendingDrop(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="data-[size=default]:max-w-[calc(100vw-2rem)] data-[size=default]:sm:max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif text-xl font-normal">
+            <AlertDialogTitle className="font-serif text-xl font-normal break-words">
               Upload as v{pendingDrop?.target.nextVersion} of {pendingDrop?.target.title}?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <span className="font-medium text-foreground">{pendingDrop?.file.name}</span> will be extracted as a new
+            <AlertDialogDescription className="break-words">
+              <span className="font-medium break-all text-foreground">{pendingDrop?.file.name}</span> will be extracted as a new
               version. Values whose evidence didn&apos;t change keep their review; changed values come back for review with
               the previous version beside them.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-between">
+          <AlertDialogFooter className="flex-wrap sm:flex-row sm:items-center sm:justify-between">
             <Button
               variant="ghost"
+              className="text-muted-foreground"
               onClick={() => {
                 const f = pendingDrop?.file;
                 setPendingDrop(null);
@@ -174,7 +175,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
             >
               Start a new document instead
             </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {

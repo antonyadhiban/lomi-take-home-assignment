@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { VALUE_META } from "@/components/app/status";
 import { locate } from "@/lib/diff";
-import { fieldLabel } from "@/lib/format";
+import { displayStatus, fieldLabel } from "@/lib/format";
 import type { Value } from "@/lib/types";
 
 /**
@@ -55,7 +55,7 @@ export function SourceDocument({
         {segments.map((s, i) => {
           if (!s.v) return <span key={i}>{s.text}</span>;
           const v = s.v;
-          const meta = VALUE_META[v.status];
+          const meta = VALUE_META[displayStatus(v)];
           return (
             <mark
               key={i}

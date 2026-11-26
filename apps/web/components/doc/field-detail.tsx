@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { isOptimistic } from "@/hooks/use-review";
 import { diffWords, type DiffPart } from "@/lib/diff";
-import { fieldLabel, formatValue, timeAgo } from "@/lib/format";
+import { displayStatus, fieldLabel, formatValue, timeAgo } from "@/lib/format";
 import type { ReviewEvent, ReviewInput, Value } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +103,8 @@ export function FieldDetail({
                 <Dot className="bg-gap" /> Gap
               </Chip>
             )}
-            <ValueStatusChip status={v.status} />
+            {v.status === "carried_over" && <Chip title="Value and source passage unchanged from the previous version">Carried over from v{prev?.versionNumber ?? "–"}</Chip>}
+            <ValueStatusChip status={displayStatus(v)} />
           </div>
         </div>
 
@@ -184,7 +185,7 @@ export function FieldDetail({
             </form>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
-              {v.status !== "approved" && (
+              {displayStatus(v) !== "approved" && (
                 <Button size="sm" onClick={() => onReview({ action: "approve" })} disabled={busy}>
                   <Check /> {v.isGap ? "Confirm absent" : "Approve"}
                   <kbd className="ml-1 hidden text-[10px] opacity-60 sm:inline">A</kbd>

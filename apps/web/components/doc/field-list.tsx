@@ -1,7 +1,7 @@
 "use client";
 
 import { Dot, VALUE_META } from "@/components/app/status";
-import { fieldLabel, formatValue } from "@/lib/format";
+import { displayStatus, fieldLabel, formatValue } from "@/lib/format";
 import type { Value } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -20,9 +20,9 @@ export function FieldList({
   onSelect: (id: string) => void;
 }) {
   return (
-    <ul className="divide-y border-y">
+    <ul className="divide-y border-b">
       {values.map((v) => {
-        const meta = VALUE_META[v.status];
+        const meta = VALUE_META[displayStatus(v)];
         const shown = v.status === "corrected" || v.history.at(-1)?.state === "corrected" ? v.effectiveValue : v.value;
         return (
           <li key={v.id}>

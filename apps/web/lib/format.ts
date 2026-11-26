@@ -1,5 +1,5 @@
 import { normalizeValue } from "@lomi/core";
-import type { FieldType } from "./types";
+import type { FieldType, Progress, Value, ValueStatus } from "./types";
 
 export const fieldLabel = (field: string) =>
   field.replace(/_/g, " ").replace(/\b1br\b/i, "1BR").replace(/^\w/, (c) => c.toUpperCase());
@@ -32,3 +32,25 @@ export const timeAgo = (iso: string) => {
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return new Date(iso).toLocaleDateString();
 };
+
+
+export type DisplayStatus = Exclude<ValueStatus, "carried_over">;
+
+/**
+ * How a value is shown outside the detail panel. A carried-over value is
+ * simply as reviewed as the review it inherited (approved or corrected);
+ * "carried over" is provenance, shown only in the detail panel.
+ */
+export function displayStatus(v: Value): DisplayStatus {
+  if (v.status !== "carried_over") return v.status;
+  return v.history.at(-1)?.state === "corrected" ? "corrected" : "approved";
+}
+
+export function displayProgress(values: Value[]): Progress {
+  const p: Progress = { total: values.length, pending: 0, approved: 0, corrected: 0, carried_over: 0, gaps: 0 };
+  for (const v of values) {
+    p[displayStatus(v)]++;
+    if (v.isGap) p.gaps++;
+  }
+  return p;
+}

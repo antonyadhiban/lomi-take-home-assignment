@@ -121,21 +121,26 @@
   }
 }
 
-/* Evidence highlights in the source document */
+/* Evidence highlights in the source document: every recognised field gets a
+   soft bounding box in its review-state colour; hover/selection strengthens it. */
 @layer components {
   .evidence {
-    @apply cursor-pointer rounded-[2px] px-px transition-colors duration-100;
-    background: color-mix(in oklab, var(--hl) 16%, transparent);
-    box-shadow: inset 0 -1.5px 0 color-mix(in oklab, var(--hl) 70%, transparent);
+    @apply cursor-pointer rounded-[3px] transition-[background-color,box-shadow] duration-100;
+    padding: 1px 3px;
+    margin: 0 -1px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    background: color-mix(in oklab, var(--hl) 11%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl) 45%, transparent);
   }
   .evidence:hover,
   .evidence[data-active="true"] {
-    background: color-mix(in oklab, var(--hl) 30%, transparent);
-    box-shadow: inset 0 -2px 0 var(--hl), 0 0 0 1.5px color-mix(in oklab, var(--hl) 55%, transparent);
+    background: color-mix(in oklab, var(--hl) 22%, transparent);
+    box-shadow: inset 0 0 0 1.5px var(--hl), 0 0 0 3px color-mix(in oklab, var(--hl) 18%, transparent);
   }
   .evidence[data-dim="true"] {
-    background: transparent;
-    box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--hl) 35%, transparent);
+    background: color-mix(in oklab, var(--hl) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hl) 28%, transparent);
   }
 }
 

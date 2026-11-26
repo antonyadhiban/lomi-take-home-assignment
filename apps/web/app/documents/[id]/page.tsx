@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/app/app-shell";
 import { ProgressBar } from "@/components/app/progress";
-import { Dot, VersionStatusChip } from "@/components/app/status";
+import { VersionStatusChip } from "@/components/app/status";
 import { useUpload, useVersionDropTarget } from "@/components/app/upload-provider";
 import { FieldDetail } from "@/components/doc/field-detail";
 import { FieldList } from "@/components/doc/field-list";
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { isOptimistic, useReview } from "@/hooks/use-review";
 import { api, isInFlight } from "@/lib/api";
-import { typeLabel } from "@/lib/format";
+import { displayProgress, displayStatus, typeLabel } from "@/lib/format";
 import type { DocumentDetail, ReviewInput, Value } from "@/lib/types";
 
 /** Needs-attention first: changed values, other pending, gaps; then everything reviewed. */
@@ -127,7 +127,7 @@ export default function DocumentPage() {
         setHoverId(null);
         setSelectedId(values[Math.max(0, idx - 1)]!.id);
       } else if (!readOnly && selected) {
-        if (k === "a" && selected.status !== "approved") act(selected, { action: "approve" });
+        if (k === "a" && displayStatus(selected) !== "approved") act(selected, { action: "approve" });
         else if (k === "c") {
           e.preventDefault();
           setHoverId(null);
@@ -245,33 +245,33 @@ export default function DocumentPage() {
         <aside className="flex max-h-[55vh] w-full shrink-0 flex-col border-t bg-background lg:max-h-none lg:w-[400px] lg:border-t-0 lg:border-l" aria-label="Review">
           {shown && shown.version.status === "extracted" ? (
             <>
-              <div className="border-b px-4 py-4">
-                <p className="text-sm">
-                  {readOnly ? (
-                    <span className="text-muted-foreground">v{shown.version.version} · read-only history</span>
-                  ) : pending.length ? (
-                    <>
-                      <span className="font-medium">
-                        {pending.length} to review
-                      </span>
-                      {changed > 0 && <span className="text-muted-foreground"> · {changed} changed since v{shown.version.version - 1}</span>}
-                    </>
-                  ) : (
-                    <span className="font-medium text-approved">All {shown.progress.total} reviewed</span>
-                  )}
+              <div className="border-b px-4 py-3">
+                <p className="text-xs text-muted-foreground">
+                  {readOnly ? `v${shown.version.version} · read-only history` : "Review progress"}
                 </p>
-                <ProgressBar progress={shown.progress} className="mt-2.5" />
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><Dot className="bg-approved" />{shown.progress.approved} approved</span>
-                  <span className="flex items-center gap-1"><Dot className="bg-corrected" />{shown.progress.corrected} corrected</span>
-                  <span className="flex items-center gap-1"><Dot className="bg-carried" />{shown.progress.carried_over} carried over</span>
-                  <span className="flex items-center gap-1"><Dot className="bg-pending" />{shown.progress.pending} pending</span>
-                </div>
+                <ProgressBar progress={displayProgress(shown.values)} className="mt-2" />
               </div>
 
               {/* Stable zone: the list never moves when you hover; hover only highlights here and in the document. */}
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <p className="px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">Fields</p>
+                <div className="sticky top-0 z-10 flex items-center gap-2 border-b bg-background px-4 py-2.5">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Fields</span>
+                  {readOnly ? null : pending.length ? (
+                    <>
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center bg-foreground px-1.5 text-[11px] font-medium tabular-nums text-background">
+                        {pending.length}
+                      </span>
+                      <span className="text-xs">to review</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-approved">All reviewed</span>
+                  )}
+                  <span className="flex-1" />
+                  {!readOnly && changed > 0 && (
+                    <span className="text-[11px] text-pending">{changed} changed since v{shown.version.version - 1}</span>
+                  )}
+                  <span className="text-[11px] tabular-nums text-muted-foreground">{shown.values.length} total</span>
+                </div>
                 <FieldList
                   values={values}
                   focusedId={focusedId}
