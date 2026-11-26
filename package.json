@@ -2,7 +2,9 @@
   "name": "lomi-take-home",
   "private": true,
   "packageManager": "pnpm@10.8.1",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -10,9 +12,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
-    "db:migrate": "pnpm --filter @lomi/db migrate:deploy",
-    "db:seed": "pnpm --filter @lomi/db seed",
-    "eval:models": "pnpm --filter @lomi/extraction eval"
+    "db:migrate": "pnpm --filter @lomi/db migrate:deploy"
   },
   "devDependencies": {
     "turbo": "2.11.13",
