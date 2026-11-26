@@ -19,8 +19,8 @@ Open http://localhost:3000. Compose starts Postgres, Redis, S3-compatible storag
 **What to click first**
 
 1. **Market report**: six fields; *Median household income* isn't in the document, so it's a **gap** with the model's reason, not a guess.
-2. **Invoice**: hover a highlighted passage in the document, or a field in the sidebar, and it lights up in both places. Click to review it in the panel at the bottom of the sidebar. Approve (`A`), correct (`C`), undo/redo (`U` / `Shift+U`), move between fields with `J`/`K`.
-3. Approve everything on the invoice, then **drag `fixtures/documents/invoice-001.v2.pdf` onto the page** (or use *New version*). It asks to upload it as v2; when it's extracted, exactly **Due date** and **Total amount** are back under review, each showing the v1 value, its review, and a word diff of the evidence. The other three keep their approvals ("Carried over from v1" in the panel). The version picker still shows v1, read-only, with its own text and reviews.
+2. **Invoice**: hover a highlighted field in the document, or in the sidebar list, to preview it in the review card floating over the document. Click to pin it; click empty space or press `Esc` to dismiss. Approve (`A`), correct (`C`), undo/redo (`U` / `Shift+U`), step through fields with `J`/`K`. The sidebar's stage row (Upload → Extract → Review) shows where the document is; hover the review bar for the breakdown.
+3. Approve everything on the invoice, then **drag `fixtures/documents/invoice-001.v2.pdf` onto the page** (or *Upload new version* in the version menu). It asks to upload it as v2; when it's extracted, exactly **Due date** and **Total amount** are back under review, each showing "was … · approved in v1" and the source quote with the change marked inline. The other three keep their approvals ("Carried over from v1" in the panel). The version picker still shows v1, read-only, with its own text and reviews.
 4. Drop any PDF on the documents list to start a new document.
 
 **Tests and tooling**
