@@ -66,7 +66,9 @@ The live demo runs as two halves:
 | Part | Where | Notes |
 |---|---|---|
 | Web app (`apps/web`) | Vercel | Deploys automatically on every push to `main`. Root directory `apps/web`; needs `NEXT_PUBLIC_API_URL`. |
-| API, worker, Postgres, Redis, PDF storage | Railway | API and worker run the same `Dockerfile` (`APP=api` / `APP=worker`). Set `RUN_MIGRATIONS=true` on the API so it migrates and seeds on start. |
+| API, worker, Postgres, Redis, PDF storage | Railway | API and worker deploy automatically on every push to `main`, both built from the same `Dockerfile` (`APP=api` / `APP=worker`). `RUN_MIGRATIONS=true` on the API runs migrations and the sample seed on start. |
+
+Pushing to `main` updates everything: Vercel rebuilds the web app and Railway rebuilds the API and worker.
 
 The worker needs a long-running process and a persistent Redis connection, which serverless platforms don't provide. Any container host works (Railway, Fly.io, ECS, Cloud Run with min instances). For lower latency, place the API, worker and database in the region closest to the client's reviewers.
 
