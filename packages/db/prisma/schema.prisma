@@ -1,0 +1,139 @@
+// Postgres is the system of record. Redis (BullMQ) only coordinates work;
+// everything a user can see — versions, run outcomes, values, reviews — is here.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VersionStatus {
+  queued
+  extracting
+  extracted
+  failed
+  superseded // a newer version arrived before this one finished
+}
+
+enum RunStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+enum ReviewKind {
+  approved
+  corrected
+  restored     // undo/redo/restore: re-applies the state of an earlier event
+  carried_over // copied from the previous version because evidence + value were unchanged
+}
+
+model Document {
+  id               String            @id @default(cuid())
+  type             String // invoice | lease | market_report (validated in @lomi/core)
+  title            String
+  createdAt        DateTime          @default(now())
+  /// newest uploaded version (may still be extracting)
+  currentVersionId String?           @unique
+  currentVersion   DocumentVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions         DocumentVersion[] @relation("Versions")
+}
+
+model DocumentVersion {
+  id          String          @id @default(cuid())
+  documentId  String
+  document    Document        @relation("Versions", fields: [documentId], references: [id])
+  currentOf   Document?       @relation("CurrentVersion")
+  version     Int
+  status      VersionStatus   @default(queued)
+  /// S3 object key of the original PDF
+  storageKey  String
+  sha256      String
+  /// parsed once and stored, so evidence checks and the review UI for version N
+  /// keep working after N+1 exists
+  parsedText  String?
+  /// last user-visible failure (copied from the failing run)
+  error       String?
+  createdAt   DateTime        @default(now())
+  runs        ExtractionRun[]
+  values      ExtractedValue[]
+
+  @@unique([documentId, version])
+  @@index([status])
+}
+
+/// One attempt to extract a version. The reconciler uses status + leaseUntil to
+/// find work that Redis forgot (restart, FLUSHALL) and re-enqueue it.
+model ExtractionRun {
+  id          String          @id @default(cuid())
+  versionId   String
+  version     DocumentVersion @relation(fields: [versionId], references: [id])
+  attempt     Int
+  status      RunStatus       @default(queued)
+  leaseUntil  DateTime?
+  model       String?
+  prompt      String?
+  rawResponse Json?
+  error       String?
+  createdAt   DateTime        @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  values      ExtractedValue[]
+
+  @@unique([versionId, attempt])
+  @@index([status, leaseUntil])
+}
+
+/// Immutable LLM output. A gap is value = null with gapReason set.
+/// Unique (versionId, field) makes extraction idempotent: a second run for the
+/// same version can never add duplicate values.
+model ExtractedValue {
+  id              String          @id @default(cuid())
+  versionId       String
+  version         DocumentVersion @relation(fields: [versionId], references: [id])
+  runId           String
+  run             ExtractionRun   @relation(fields: [runId], references: [id])
+  field           String
+  value           String?
+  normalizedValue String?
+  evidence        String?
+  /// offsets into normalized parsedText, for highlighting
+  evidenceStart   Int?
+  evidenceEnd     Int?
+  gapReason       String?
+  /// the same field on the previous extracted version (for "what changed")
+  previousValueId String?
+  previousValue   ExtractedValue? @relation("PreviousValue", fields: [previousValueId], references: [id])
+  nextValues      ExtractedValue[] @relation("PreviousValue")
+  createdAt       DateTime        @default(now())
+  reviews         ReviewEvent[]
+
+  @@unique([versionId, field])
+}
+
+/// Append-only review log (Google-Docs-style history). The latest event per
+/// value is its effective state; undo/redo append `restored` events.
+model ReviewEvent {
+  id             String         @id @default(cuid())
+  valueId        String
+  value          ExtractedValue @relation(fields: [valueId], references: [id])
+  kind           ReviewKind
+  /// effective value after this event (the corrected value for `corrected`)
+  resultValue    String?
+  note           String?
+  reviewer       String         @default("reviewer")
+  /// for `restored`: the event whose state was re-applied;
+  /// for `carried_over`: the event on the previous version that was copied
+  sourceEventId  String?
+  sourceEvent    ReviewEvent?   @relation("SourceEvent", fields: [sourceEventId], references: [id])
+  derivedEvents  ReviewEvent[]  @relation("SourceEvent")
+  createdAt      DateTime       @default(now())
+
+  @@index([valueId, createdAt])
+}

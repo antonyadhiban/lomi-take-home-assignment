@@ -1,0 +1,22 @@
+{
+  "name": "@lomi/storage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": { "@aws-sdk/client-s3": "3.1178.0" },
+  "devDependencies": {
+    "@lomi/eslint-config": "workspace:*",
+    "@lomi/tsconfig": "workspace:*",
+    "@types/node": "26.6.11",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.2"
+  }
+}

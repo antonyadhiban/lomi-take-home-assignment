@@ -1,0 +1,81 @@
+# `docker compose up` starts infra, runs migrations (+ seed, once implemented),
+# then the API, worker and web UI.
+x-app-env: &app-env
+  DATABASE_URL: postgresql://lomi:lomi@postgres:5432/lomi
+  REDIS_URL: redis://redis:6379
+  S3_ENDPOINT: http://s3:8333
+  S3_REGION: us-east-1
+  S3_BUCKET: documents
+  S3_ACCESS_KEY_ID: localdev
+  S3_SECRET_ACCESS_KEY: localdev12345
+  S3_FORCE_PATH_STYLE: "true"
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  EXTRACTION_MODEL: ${EXTRACTION_MODEL:-anthropic/claude-sonnet-5.5}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: { POSTGRES_USER: lomi, POSTGRES_PASSWORD: lomi, POSTGRES_DB: lomi }
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lomi"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
+  # S3-compatible object storage for PDFs. (MinIO stopped publishing images;
+  # SeaweedFS's S3 gateway is a drop-in for local dev. Prod uses real S3/R2.)
+  s3:
+    image: chrislusf/seaweedfs:4.54
+    command: server -dir=/data -s3 -s3.port=8333 -master.volumeSizeLimitMB=64
+    ports: ["8333:8333"]
+    volumes: [s3data:/data]
+
+  migrate:
+    build: { context: ., args: { APP: api } }
+    environment: *app-env
+    working_dir: /repo/packages/db
+    command: ["sh", "-c", "pnpm migrate:deploy"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    build: { context: ., args: { APP: api } }
+    environment:
+      <<: *app-env
+      API_PORT: "4000"
+      CORS_ORIGINS: http://localhost:3000
+    ports: ["4000:4000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      s3: { condition: service_started }
+    restart: unless-stopped
+
+  worker:
+    build: { context: ., args: { APP: worker } }
+    environment: *app-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      s3: { condition: service_started }
+    restart: unless-stopped
+
+  web:
+    build: { context: ., args: { APP: web, NEXT_PUBLIC_API_URL: "http://localhost:4000" } }
+    ports: ["3000:3000"]
+    depends_on: [api]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  s3data:

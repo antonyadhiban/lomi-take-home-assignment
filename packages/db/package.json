@@ -1,0 +1,28 @@
+{
+  "name": "@lomi/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": {
+    "db:generate": "prisma generate",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@lomi/eslint-config": "workspace:*",
+    "@lomi/tsconfig": "workspace:*",
+    "@types/node": "26.6.11",
+    "eslint": "10.15.0",
+    "prisma": "7.10.1",
+    "typescript": "6.0.3"
+  }
+}

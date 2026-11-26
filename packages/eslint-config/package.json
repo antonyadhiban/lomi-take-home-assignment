@@ -1,0 +1,12 @@
+{
+  "name": "@lomi/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./index.js" },
+  "dependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "10.15.0",
+    "typescript-eslint": "8.74.0"
+  }
+}
