@@ -1,0 +1,3263 @@
+{
+  "rows": [
+    {
+      "model": "openai/gpt-6-luna",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 2725,
+      "costPerDocUsd": 0.00019141249999999997
+    },
+    {
+      "model": "anthropic/claude-haiku-5.5",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 2850,
+      "costPerDocUsd": 0.0003798125
+    },
+    {
+      "model": "qwen/qwen4-max",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 6199,
+      "costPerDocUsd": 0.0025867668750000003
+    },
+    {
+      "model": "google/gemini-3.8-flash",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 6240,
+      "costPerDocUsd": 0.00315684375
+    },
+    {
+      "model": "openai/gpt-6.2-sol",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 5200,
+      "costPerDocUsd": 0.00409675
+    },
+    {
+      "model": "anthropic/claude-sonnet-5.5",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 2421,
+      "costPerDocUsd": 0.005450000000000001
+    },
+    {
+      "model": "mistralai/mistral-large-4-0",
+      "accuracy": 1,
+      "correct": 42,
+      "wrong": 0,
+      "missed": 0,
+      "hallucinated": 0,
+      "evidenceRejected": 0,
+      "errors": 0,
+      "consistency": 1,
+      "p50LatencyMs": 28863,
+      "costPerDocUsd": 0.00662433275
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "accuracy": 0.9761904761904762,
+      "correct": 41,
+      "wrong": 0,
+      "missed": 1,
+      "hallucinated": 0,
+      "evidenceRejected": 1,
+      "errors": 0,
+      "consistency": 0.9523809523809523,
+      "p50LatencyMs": 7009,
+      "costPerDocUsd": 0.0008468663750000001
+    }
+  ],
+  "results": [
+    {
+      "model": "anthropic/claude-sonnet-5.5",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 1281,
+          "outputTokens": 270,
+          "costUsd": 0.005262,
+          "latencyMs": 2298
+        },
+        {
+          "inputTokens": 1335,
+          "outputTokens": 270,
+          "costUsd": 0.00537,
+          "latencyMs": 2184
+        },
+        {
+          "inputTokens": 1376,
+          "outputTokens": 244,
+          "costUsd": 0.005192,
+          "latencyMs": 2421
+        },
+        {
+          "inputTokens": 1403,
+          "outputTokens": 317,
+          "costUsd": 0.005976,
+          "latencyMs": 3347
+        },
+        {
+          "inputTokens": 1281,
+          "outputTokens": 270,
+          "costUsd": 0.005262,
+          "latencyMs": 2587
+        },
+        {
+          "inputTokens": 1335,
+          "outputTokens": 270,
+          "costUsd": 0.00537,
+          "latencyMs": 2221
+        },
+        {
+          "inputTokens": 1376,
+          "outputTokens": 244,
+          "costUsd": 0.005192,
+          "latencyMs": 2090
+        },
+        {
+          "inputTokens": 1403,
+          "outputTokens": 317,
+          "costUsd": 0.005976,
+          "latencyMs": 2682
+        }
+      ]
+    },
+    {
+      "model": "openai/gpt-6.2-sol",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 666,
+          "outputTokens": 255,
+          "costUsd": 0.003882,
+          "latencyMs": 4514
+        },
+        {
+          "inputTokens": 698,
+          "outputTokens": 255,
+          "costUsd": 0.003946,
+          "latencyMs": 4148
+        },
+        {
+          "inputTokens": 723,
+          "outputTokens": 263,
+          "costUsd": 0.004076,
+          "latencyMs": 7675
+        },
+        {
+          "inputTokens": 759,
+          "outputTokens": 301,
+          "costUsd": 0.004528,
+          "latencyMs": 6237
+        },
+        {
+          "inputTokens": 666,
+          "outputTokens": 255,
+          "costUsd": 0.003882,
+          "latencyMs": 4741
+        },
+        {
+          "inputTokens": 698,
+          "outputTokens": 255,
+          "costUsd": 0.003946,
+          "latencyMs": 4285
+        },
+        {
+          "inputTokens": 723,
+          "outputTokens": 254,
+          "costUsd": 0.003986,
+          "latencyMs": 5200
+        },
+        {
+          "inputTokens": 759,
+          "outputTokens": 301,
+          "costUsd": 0.004528,
+          "latencyMs": 5960
+        }
+      ]
+    },
+    {
+      "model": "qwen/qwen4-max",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 818,
+          "outputTokens": 423,
+          "costUsd": 0.001934295,
+          "latencyMs": 4752
+        },
+        {
+          "inputTokens": 857,
+          "outputTokens": 477,
+          "costUsd": 0.00222072,
+          "latencyMs": 5746
+        },
+        {
+          "inputTokens": 836,
+          "outputTokens": 704,
+          "costUsd": 0.00316122,
+          "latencyMs": 6560
+        },
+        {
+          "inputTokens": 863,
+          "outputTokens": 671,
+          "costUsd": 0.00305862,
+          "latencyMs": 7955
+        },
+        {
+          "inputTokens": 818,
+          "outputTokens": 468,
+          "costUsd": 0.00212667,
+          "latencyMs": 4878
+        },
+        {
+          "inputTokens": 857,
+          "outputTokens": 473,
+          "costUsd": 0.00220362,
+          "latencyMs": 6010
+        },
+        {
+          "inputTokens": 836,
+          "outputTokens": 667,
+          "costUsd": 0.003003045,
+          "latencyMs": 6199
+        },
+        {
+          "inputTokens": 863,
+          "outputTokens": 654,
+          "costUsd": 0.002985945,
+          "latencyMs": 6482
+        }
+      ]
+    },
+    {
+      "model": "mistralai/mistral-large-4-0",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 722,
+          "outputTokens": 1597,
+          "costUsd": 0.00353654,
+          "latencyMs": 18508
+        },
+        {
+          "inputTokens": 756,
+          "outputTokens": 1623,
+          "costUsd": 0.003976434,
+          "latencyMs": 14573
+        },
+        {
+          "inputTokens": 783,
+          "outputTokens": 4551,
+          "costUsd": 0.00978264,
+          "latencyMs": 98647
+        },
+        {
+          "inputTokens": 823,
+          "outputTokens": 4152,
+          "costUsd": 0.009870014,
+          "latencyMs": 53787
+        },
+        {
+          "inputTokens": 722,
+          "outputTokens": 1851,
+          "costUsd": 0.00406994,
+          "latencyMs": 20478
+        },
+        {
+          "inputTokens": 756,
+          "outputTokens": 2631,
+          "costUsd": 0.006304914,
+          "latencyMs": 21826
+        },
+        {
+          "inputTokens": 783,
+          "outputTokens": 3923,
+          "costUsd": 0.00846384,
+          "latencyMs": 34322
+        },
+        {
+          "inputTokens": 823,
+          "outputTokens": 3208,
+          "costUsd": 0.00699034,
+          "latencyMs": 28863
+        }
+      ]
+    },
+    {
+      "model": "google/gemini-3.8-flash",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 650,
+          "outputTokens": 458,
+          "costUsd": 0.002205,
+          "latencyMs": 4758
+        },
+        {
+          "inputTokens": 688,
+          "outputTokens": 785,
+          "costUsd": 0.00345975,
+          "latencyMs": 6240
+        },
+        {
+          "inputTokens": 653,
+          "outputTokens": 1436,
+          "costUsd": 0.00587475,
+          "latencyMs": 10394
+        },
+        {
+          "inputTokens": 673,
+          "outputTokens": 214,
+          "costUsd": 0.00130725,
+          "latencyMs": 4151
+        },
+        {
+          "inputTokens": 650,
+          "outputTokens": 408,
+          "costUsd": 0.0020175,
+          "latencyMs": 4257
+        },
+        {
+          "inputTokens": 688,
+          "outputTokens": 462,
+          "costUsd": 0.0022485,
+          "latencyMs": 6536
+        },
+        {
+          "inputTokens": 653,
+          "outputTokens": 1527,
+          "costUsd": 0.006216,
+          "latencyMs": 12496
+        },
+        {
+          "inputTokens": 673,
+          "outputTokens": 379,
+          "costUsd": 0.001926,
+          "latencyMs": 4146
+        }
+      ]
+    },
+    {
+      "model": "anthropic/claude-haiku-5.5",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 1281,
+          "outputTokens": 270,
+          "costUsd": 0.0002631,
+          "latencyMs": 1892
+        },
+        {
+          "inputTokens": 1335,
+          "outputTokens": 270,
+          "costUsd": 0.0002685,
+          "latencyMs": 1825
+        },
+        {
+          "inputTokens": 1376,
+          "outputTokens": 778,
+          "costUsd": 0.0005266,
+          "latencyMs": 3693
+        },
+        {
+          "inputTokens": 1403,
+          "outputTokens": 669,
+          "costUsd": 0.0004748,
+          "latencyMs": 2850
+        },
+        {
+          "inputTokens": 1281,
+          "outputTokens": 270,
+          "costUsd": 0.0002631,
+          "latencyMs": 1689
+        },
+        {
+          "inputTokens": 1335,
+          "outputTokens": 270,
+          "costUsd": 0.0002685,
+          "latencyMs": 2040
+        },
+        {
+          "inputTokens": 1376,
+          "outputTokens": 713,
+          "costUsd": 0.0004941,
+          "latencyMs": 3507
+        },
+        {
+          "inputTokens": 1403,
+          "outputTokens": 679,
+          "costUsd": 0.0004798,
+          "latencyMs": 3529
+        }
+      ]
+    },
+    {
+      "model": "openai/gpt-6-luna",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 638,
+          "outputTokens": 217,
+          "costUsd": 0.0001723,
+          "latencyMs": 2800
+        },
+        {
+          "inputTokens": 670,
+          "outputTokens": 226,
+          "costUsd": 0.00018,
+          "latencyMs": 2915
+        },
+        {
+          "inputTokens": 695,
+          "outputTokens": 237,
+          "costUsd": 0.000188,
+          "latencyMs": 2626
+        },
+        {
+          "inputTokens": 731,
+          "outputTokens": 269,
+          "costUsd": 0.0002076,
+          "latencyMs": 2974
+        },
+        {
+          "inputTokens": 638,
+          "outputTokens": 225,
+          "costUsd": 0.0001763,
+          "latencyMs": 2376
+        },
+        {
+          "inputTokens": 670,
+          "outputTokens": 227,
+          "costUsd": 0.0001805,
+          "latencyMs": 2725
+        },
+        {
+          "inputTokens": 695,
+          "outputTokens": 298,
+          "costUsd": 0.0002185,
+          "latencyMs": 2433
+        },
+        {
+          "inputTokens": 731,
+          "outputTokens": 270,
+          "costUsd": 0.0002081,
+          "latencyMs": 2602
+        }
+      ]
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "fields": [
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "4.2",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 0,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 0,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-10-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "5230.29",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "invoice_number",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "INV-2025-0847",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "issue_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-09-14",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "due_date",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-11-13",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "vendor_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "MERIDIAN OFFICE SUPPLIES LLC",
+          "evidenceRejected": false
+        },
+        {
+          "file": "invoice-001.v2.pdf",
+          "field": "total_amount",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "6126.45",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "tenant_name",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Dana Okafor",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "monthly_rent",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2350.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "security_deposit",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3525.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "lease_start",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "2025-03-01",
+          "evidenceRejected": false
+        },
+        {
+          "file": "lease-excerpt-001.pdf",
+          "field": "term_months",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "24",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "report_quarter",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Q3 2025",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "market_area",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "Eastport-Harborview Submarket",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "vacancy_rate",
+          "repeat": 1,
+          "outcome": "missed",
+          "got": null,
+          "evidenceRejected": true,
+          "reason": "rejected: value \"evidence\" is not a valid percent"
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "average_rent_1br",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "1985.00",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "year_over_year_rent_growth",
+          "repeat": 1,
+          "outcome": "correct",
+          "got": "3.8",
+          "evidenceRejected": false
+        },
+        {
+          "file": "market-report-excerpt-001.pdf",
+          "field": "median_household_income",
+          "repeat": 1,
+          "outcome": "correct_gap",
+          "got": null,
+          "evidenceRejected": false,
+          "reason": "not mentioned in the document"
+        }
+      ],
+      "errors": [],
+      "calls": [
+        {
+          "inputTokens": 594,
+          "outputTokens": 802,
+          "costUsd": 0.00064515,
+          "latencyMs": 5888
+        },
+        {
+          "inputTokens": 810,
+          "outputTokens": 740,
+          "costUsd": 0.000589294,
+          "latencyMs": 4643
+        },
+        {
+          "inputTokens": 648,
+          "outputTokens": 1402,
+          "costUsd": 0.001011636,
+          "latencyMs": 7009
+        },
+        {
+          "inputTokens": 871,
+          "outputTokens": 1761,
+          "costUsd": 0.001357399,
+          "latencyMs": 10890
+        },
+        {
+          "inputTokens": 594,
+          "outputTokens": 431,
+          "costUsd": 0.000271142,
+          "latencyMs": 3798
+        },
+        {
+          "inputTokens": 628,
+          "outputTokens": 915,
+          "costUsd": 0.0007661,
+          "latencyMs": 4754
+        },
+        {
+          "inputTokens": 648,
+          "outputTokens": 1340,
+          "costUsd": 0.0008802,
+          "latencyMs": 7107
+        },
+        {
+          "inputTokens": 670,
+          "outputTokens": 1975,
+          "costUsd": 0.00125401,
+          "latencyMs": 11727
+        }
+      ]
+    }
+  ]
+}

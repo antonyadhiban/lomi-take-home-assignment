@@ -24,6 +24,20 @@ export class ExtractionError extends Error {
   }
 }
 
+let catalog: Promise<Map<string, Set<string>>> | undefined;
+
+/** Model -> supported request parameters, from OpenRouter's public catalog (fetched once per process). */
+async function supportedParameters(model: string): Promise<Set<string>> {
+  catalog ??= fetch("https://openrouter.ai/api/v1/models")
+    .then((r) => r.json() as Promise<{ data: { id: string; supported_parameters?: string[] }[] }>)
+    .then((j) => new Map(j.data.map((m) => [m.id, new Set(m.supported_parameters ?? [])])))
+    .catch(() => {
+      catalog = undefined; // retry next time; meanwhile assume nothing optional is supported
+      return new Map<string, Set<string>>();
+    });
+  return (await catalog).get(model) ?? new Set();
+}
+
 export interface OpenRouterOptions {
   apiKey?: string;
   model?: string;
@@ -53,9 +67,12 @@ export function createOpenRouterProvider(opts: OpenRouterOptions = {}): Extracti
       const user = buildUserPrompt(documentType, fields, text);
       const prompt = `SYSTEM:\n${SYSTEM_PROMPT}\n\nUSER:\n${user}`;
       const started = Date.now();
+      // Reasoning models (current Claude/GPT) reject `temperature`; with
+      // require_parameters an unsupported param excludes every endpoint (404).
+      const supportsTemperature = (await supportedParameters(model)).has("temperature");
       const body = {
         model,
-        temperature: 0,
+        ...(supportsTemperature ? { temperature: 0 } : {}),
         messages: [
           { role: "system" as const, content: SYSTEM_PROMPT },
           { role: "user" as const, content: user },

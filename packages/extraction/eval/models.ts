@@ -3,7 +3,7 @@ export const DEFAULT_MODELS = [
   // frontier
   "anthropic/claude-sonnet-5.5",
   "openai/gpt-6.2-sol",
-  "google/gemini-4-carbon",
+  // "google/gemini-4-carbon", // 403 "banned" on this OpenRouter account (account-level model/data policy)
   // mid
   "qwen/qwen4-max",
   "mistralai/mistral-large-4-0",
