@@ -33,6 +33,13 @@ pnpm lint && pnpm typecheck
 pnpm eval:models                      # re-run the LLM comparison (needs OPENROUTER_API_KEY)
 ```
 
+For hot-reload development, run only the infrastructure in Docker and the apps natively. The api/worker dev scripts load `.env.example` defaults, then your `.env` on top:
+
+```sh
+docker compose up -d postgres redis s3 migrate
+pnpm dev                              # turbo: api :4000, worker, web :3000 with hot reload
+```
+
 ---
 
 ## Monorepo layout
